@@ -8,32 +8,32 @@ begining of the page | page no of the left child | right childs pageNO| index no
 every index i.e attributes ,and so on*/
 public class IndexRecord{
     //Records made private so as to enable security and use getters and setters for sensitive page data
-    public Byte noOfRowIds;
-    public DataTypes dataType;
-    public Byte[] indexValue;
-    public List<Integer> rowIds;
-    public short pageHeaderIndex;
-    public short pageOffset;
-    int leftPageNo;
-    int rightPageNo;
-    int pageNo;
+    public Byte numRowIds;
+    public DataTypes dtType;
+    public Byte[] indValue;
+    public List<Integer> rowId;
+    public short pgHeaderIndex;
+    public short pgOffset;
+    int leftPgNo;
+    int rightPgNo;
+    int pgNo;
     private IndexNode indexNode;
 
 //Constructor adds an index Record based on the query for the attribute provided through the splashTerminal 
-    IndexRecord(short pgHeaderIndx,DataTypes dtType,Byte NoOfRowIds, byte[] indxVal, List<Integer> rowIds
-    ,int lftPgNo,int rtPgNo,int pgNo,short pgOffset){
+    IndexRecord(short pgHdrIndx,DataTypes dTyp,Byte NRowIds, byte[] inxVal, List<Integer> rowId
+    ,int lPgNo,int rPgNo,int pNo,short pgOff){
       
-        this.pageOffset = pgOffset;
-        this.pageHeaderIndex = pgHeaderIndx;
-        this.noOfRowIds = NoOfRowIds;
-        this.dataType = dtType;
-        this.indexValue = ByteConvertor.byteToBytes(indxVal);
-        this.rowIds = rowIds;
+        this.pgOffset = pgOff;
+        this.pgHeaderIndex = pgHdrIndx;
+        this.numRowIds = NRowIds;
+        this.dtType = dTyp;
+        this.indValue = ByteConvertor.byteToBytes(inxVal);
+        this.rowId = rowId;
 
-        indexNode = new IndexNode(new TableAttribute(this.dataType, indxVal),rowIds);
-        this.leftPageNo = lftPgNo;
-        this.rightPageNo = rtPgNo;
-        this.pageNo = pgNo;
+        indexNode = new IndexNode(new TableAttribute(this.dtType, inxVal),rowId);
+        this.leftPgNo = lPgNo;
+        this.rightPgNo = rPgNo;
+        this.pgNo = pNo;
     }
 
     //Getter to get the particular index Node
