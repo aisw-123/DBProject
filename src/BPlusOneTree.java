@@ -10,51 +10,51 @@ import java.io.IOException;
 //B + 1 tree implementation for traversing table files
 public class BPlusOneTree {
 
-    RandomAccessFile bnFile;
-    int rtPgNo;
-    String tblName;
+    RandomAccessFile binaryFile;
+    int rootPageNum;
+    String tableName;
 
-    public BPlusOneTree(RandomAccessFile file, int rtPgNo, String tblNm) {
-        this.bnFile = file;
-        this.rtPgNo = rtPgNo;
-        this.tblName = tblNm;
+    public BPlusOneTree(RandomAccessFile file, int rootPageNum, String tableName) {
+        this.binaryFile = file;
+        this.rootPageNum = rootPageNum;
+        this.tableName = tableName;
     }
 
     // This method does a traversal on the B+1 tree and returns the leaf pages in seqquential order
     public List<Integer> getAllLeaves() throws IOException {
 
-        List<Integer> leafPgs = new ArrayList<>();
-        bnFile.seek(rtPgNo * DavisBaseBinaryFile.pageSize);
+        List<Integer> leafPages = new ArrayList<>();
+        binaryFile.seek(rootPageNum * DavisBaseBinaryFile.pageSize);
         // if root is a leaf page, read directly and return. No traversal is required
-        PageType rtPgType = PageType.get(bnFile.readByte());
-        if (rtPgType == PageType.LEAF) {
-            if (!leafPgs.contains(rtPgNo))
-                leafPgs.add(rtPgNo);
+        PageType rootPgType = PageType.get(binaryFile.readByte());
+        if (rootPgType == PageType.LEAF) {
+            if (!leafPages.contains(rootPageNum))
+                leafPages.add(rootPageNum);
         } else {
-            addLeaves(rtPgNo, leafPgs);
+            addLeaves(rootPageNum, leafPages);
         }
 
-        return leafPgs;
+        return leafPages;
 
     }
 
     // recursively adds leaves
-    private void addLeaves(int interiorPgNo, List<Integer> leafPg) throws IOException {
-        Page interiorPage = new Page(bnFile, interiorPgNo);
-        for (InteriorRecord leftPage : interiorPage.leftChildren) {
-            if (Page.getPageType(bnFile, leftPage.leftChildPageNo) == PageType.LEAF) {
-                if (!leafPg.contains(leftPage.leftChildPageNo))
-                leafPg.add(leftPage.leftChildPageNo);
+    private void addLeaves(int intPageNo, List<Integer> leafPage) throws IOException {
+        Page intPage = new Page(binaryFile, intPageNo);
+        for (InteriorRecord leftPage : intPage.leftChildren) {
+            if (Page.getPageType(binaryFile, leftPage.leftChildPageNo) == PageType.LEAF) {
+                if (!leafPage.contains(leftPage.leftChildPageNo))
+                leafPage.add(leftPage.leftChildPageNo);
             } else {
-                addLeaves(leftPage.leftChildPageNo, leafPg);
+                addLeaves(leftPage.leftChildPageNo, leafPage);
             }
         }
 
-        if (Page.getPageType(bnFile, interiorPage.rightPage) == PageType.LEAF) {
-            if (!leafPg.contains(interiorPage.rightPage))
-            leafPg.add(interiorPage.rightPage);
+        if (Page.getPageType(binaryFile, intPage.rightPage) == PageType.LEAF) {
+            if (!leafPage.contains(intPage.rightPage))
+            leafPage.add(intPage.rightPage);
         } else {
-            addLeaves(interiorPage.rightPage, leafPg);
+            addLeaves(intPage.rightPage, leafPage);
         }
 
     }
@@ -62,13 +62,13 @@ public class BPlusOneTree {
     public List<Integer> getAllLeaves(SpecialCondition condition) throws IOException {
 
         if (condition == null || condition.getOperation() == OperatorType.NOTEQUAL
-                || !(new File(TableUtils.getIndexFilePath(tblName, condition.columnName)).exists())) {
+                || !(new File(TableUtils.getIndexFilePath(tableName, condition.columnName)).exists())) {
             // Since there is no index, use brute force algorithm to trverse through all leaves
             return getAllLeaves();
         } else {
 
             RandomAccessFile indexFile = new RandomAccessFile(
-                    TableUtils.getIndexFilePath(tblName, condition.columnName), "r");
+                    TableUtils.getIndexFilePath(tableName, condition.columnName), "r");
             BTree bTree = new BTree(indexFile);
 
             // Binary search on the btree
@@ -76,7 +76,7 @@ public class BPlusOneTree {
             Set<Integer> hash_Set = new HashSet<>();
            
             for (int rowId : rowIds) {
-                hash_Set.add(gtPgNo(rowId, new Page(bnFile, rtPgNo)));
+                hash_Set.add(gtPgNo(rowId, new Page(binaryFile, rootPageNum)));
             }
 
             
@@ -97,41 +97,41 @@ public class BPlusOneTree {
     }
 
     // Returns the page(right most) for inserting new records
-    public static int getPgNoForInsert(RandomAccessFile file, int rtPgNo) {
-        Page rootPage = new Page(file, rtPgNo);
+    public static int getPgNoForInsert(RandomAccessFile file, int rootPageNum) {
+        Page rootPage = new Page(file, rootPageNum);
         if (rootPage.pageType != PageType.LEAF && rootPage.pageType != PageType.LEAFINDEX)
             return getPgNoForInsert(file, rootPage.rightPage);
         else
-            return rtPgNo;
+            return rootPageNum;
 
     }
 
     // perform binary search on Bplus one tree and find the rowids
-    public int gtPgNo(int rowId, Page page) {
-        if (page.pageType == PageType.LEAF)
-            return page.pageNo;
+    public int gtPgNo(int rowId, Page pg) {
+        if (pg.pageType == PageType.LEAF)
+            return pg.pageNo;
 
-        int index = binarySearch(page.leftChildren, rowId, 0, page.noOfCells - 1);
+        int index = binarySearch(pg.leftChildren, rowId, 0, pg.noOfCells - 1);
 
-        if (rowId < page.leftChildren.get(index).rowId) {   //Recursion
-            return gtPgNo(rowId, new Page(bnFile, page.leftChildren.get(index).leftChildPageNo));
+        if (rowId < pg.leftChildren.get(index).rowId) {   //Recursion
+            return gtPgNo(rowId, new Page(binaryFile, pg.leftChildren.get(index).leftChildPageNo));
         } else {
-        if( index+1 < page.leftChildren.size())
-            return gtPgNo(rowId, new Page(bnFile, page.leftChildren.get(index+1).leftChildPageNo));
+        if( index+1 < pg.leftChildren.size())
+            return gtPgNo(rowId, new Page(binaryFile, pg.leftChildren.get(index+1).leftChildPageNo));
         else
-           return gtPgNo(rowId, new Page(bnFile, page.rightPage));
+           return gtPgNo(rowId, new Page(binaryFile, pg.rightPage));
 
 
         }
     }
 
-    private int binarySearch(List<InteriorRecord> vals, int searchVal, int start, int end) {   //Binary search algo
+    private int binarySearch(List<InteriorRecord> vals, int searchValue, int start, int end) {   //Binary search algo
 
         if(end - start <= 2)
         {
             int i =start;
             for(i=start;i <end;i++){
-                if(vals.get(i).rowId < searchVal)
+                if(vals.get(i).rowId < searchValue)
                     continue;
                 else
                     break;
@@ -141,13 +141,13 @@ public class BPlusOneTree {
         else{
             
                 int mid = (end - start) / 2 + start;
-                if (vals.get(mid).rowId == searchVal)
+                if (vals.get(mid).rowId == searchValue)
                     return mid;
 
-                if (vals.get(mid).rowId < searchVal)
-                    return binarySearch(vals, searchVal, mid + 1, end);
+                if (vals.get(mid).rowId < searchValue)
+                    return binarySearch(vals, searchValue, mid + 1, end);
                 else
-                    return binarySearch(vals, searchVal, start, mid - 1);
+                    return binarySearch(vals, searchValue, start, mid - 1);
             
         }
 
