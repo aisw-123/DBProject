@@ -5,46 +5,46 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BTree {
-    Page root;
-    RandomAccessFile bFile;
+    Page rt;
+    RandomAccessFile binFile;
 
     public BTree(RandomAccessFile file) {
-        this.bFile = file;
-        this.root = new Page(bFile, DavisBaseBinaryFile.getRootPage(bFile));
+        this.binFile = file;
+        this.rt = new Page(binFile, DavisBaseBinaryFile.getrtPage(binFile));
     }
 
     /**
      * This method does binary search recursively using the given value and find the right pageNo to insert the index value
-     * @param pg This is the page for which a nearest page number is to be found
-     * @param val The index value of the page pg
+     * @param page This is the page for which a nearest page number is to be found
+     * @param value The index value of the page page
      */
-    private int getNearestPageNo(Page pg, String val) {
-        if (pg.pageType == PageType.LEAFINDEX) {
-            return pg.pageNo;
+    private int getClosestPgNo(Page page, String value) {
+        if (page.pageType == PageType.LEAFINDEX) {
+            return page.pageNo;
         } else {
-            if (SpecialCondition.compare(val , pg.getIdxVals().get(0),pg.indexValueDataType) < 0)
-                return getNearestPageNo
-                    (new Page(bFile,pg.indexValuePointer.get(pg.getIdxVals().get(0)).leftPageNo),
-                        val);
-            else if(SpecialCondition.compare(val,pg.getIdxVals().get(pg.getIdxVals().size()-1),pg.indexValueDataType) > 0)
-                return getNearestPageNo(
-                    new Page(bFile,pg.rightPage),
-                        val);
+            if (SpecialCondition.compare(value , page.getIdxVals().get(0),page.indexValueDataType) < 0)
+                return getClosestPgNo
+                    (new Page(binFile,page.indexValuePointer.get(page.getIdxVals().get(0)).leftPageNo),
+                        value);
+            else if(SpecialCondition.compare(value,page.getIdxVals().get(page.getIdxVals().size()-1),page.indexValueDataType) > 0)
+                return getClosestPgNo(
+                    new Page(binFile,page.rightPage),
+                        value);
             else{
                 //perform binary search 
-                String closestValue = binarySearch(pg.getIdxVals().toArray(new String[pg.getIdxVals().size()]),val,0,pg.getIdxVals().size() -1,pg.indexValueDataType);
-                int i = pg.getIdxVals().indexOf(closestValue);
-                List<String> indexValues = pg.getIdxVals();
-                if(closestValue.compareTo(val) < 0 && i+1 < indexValues.size())
+                String closestValue = binarySearch(page.getIdxVals().toArray(new String[page.getIdxVals().size()]),value,0,page.getIdxVals().size() -1,page.indexValueDataType);
+                int i = page.getIdxVals().indexOf(closestValue);
+                List<String> indexValues = page.getIdxVals();
+                if(closestValue.compareTo(value) < 0 && i+1 < indexValues.size())
                 {
-                    return pg.indexValuePointer.get(indexValues.get(i+1)).leftPageNo;
+                    return page.indexValuePointer.get(indexValues.get(i+1)).leftPageNo;
                 }
-                else if(closestValue.compareTo(val) > 0)
+                else if(closestValue.compareTo(value) > 0)
                 {
-                    return pg.indexValuePointer.get(closestValue).leftPageNo;
+                    return page.indexValuePointer.get(closestValue).leftPageNo;
                 }
                 else{
-                    return pg.pageNo;
+                    return page.pageNo;
                 }
             }
         }
@@ -53,40 +53,40 @@ public class BTree {
     /**
      * This method is used to get the row Ids for the left of given node
      * @param pageNo
-     * @param idxVal
-     * @return rowIds
+     * @param indexVal
+     * @return rowId
      */
-    private List<Integer> getRowIdsLeftOf(int pageNo, String idxVal)
+    private List<Integer> getLeftRowId(int pageNo, String indexVal)
     {
-        List<Integer> rowIds = new ArrayList<>();
+        List<Integer> rowId = new ArrayList<>();
         if(pageNo == -1)
-            return rowIds;
-        Page page = new Page(this.bFile,pageNo);
+            return rowId;
+        Page page = new Page(this.binFile,pageNo);
         List<String> indexValues = Arrays.asList(page.getIdxVals().toArray(new String[page.getIdxVals().size()]));
 
-        for(int i=0;i< indexValues.size() && SpecialCondition.compare(indexValues.get(i), idxVal, page.indexValueDataType) < 0 ;i++)
+        for(int i=0;i< indexValues.size() && SpecialCondition.compare(indexValues.get(i), indexVal, page.indexValueDataType) < 0 ;i++)
         {
-            rowIds.addAll(page.indexValuePointer.get(indexValues.get(i)).getIndxNd().rowids);
-            addChildRowIds(page.indexValuePointer.get(indexValues.get(i)).leftPageNo, rowIds);
+            rowId.addAll(page.indexValuePointer.get(indexValues.get(i)).getIndxNd().rowids);
+            addChildRowIds(page.indexValuePointer.get(indexValues.get(i)).leftPageNo, rowId);
         }
 
-        if(page.indexValuePointer.get(idxVal)!= null)
-            addChildRowIds(page.indexValuePointer.get(idxVal).leftPageNo, rowIds);
+        if(page.indexValuePointer.get(indexVal)!= null)
+            addChildRowIds(page.indexValuePointer.get(indexVal).leftPageNo, rowId);
 
-        return rowIds;
+        return rowId;
     }
 
     /**
      * This method is used to get the row Ids which are satisfying a given condition
      * @param condition
-     * @return rowIds
+     * @return rowId
      */
     public List<Integer> getRowIds(SpecialCondition condition)
     {
-        List<Integer> rowIds = new ArrayList<>();
+        List<Integer> rowId = new ArrayList<>();
 
         //get to the closest page number satisfying the condition
-        Page page = new Page(bFile,getNearestPageNo(root, condition.comparisonValue));
+        Page page = new Page(binFile,getClosestPgNo(rt, condition.comparisonValue));
     
         //get the index values for that page
         String[] indexValues= page.getIdxVals().toArray(new String[page.getIdxVals().size()]);
@@ -97,53 +97,53 @@ public class BTree {
         for(int i=0;i < indexValues.length;i++)
         {
             if(condition.chkCondt(page.indexValuePointer.get(indexValues[i]).getIndxNd().indexValue.fieldValue))
-                rowIds.addAll(page.indexValuePointer.get(indexValues[i]).rowIds);
+                rowId.addAll(page.indexValuePointer.get(indexValues[i]).rowId);
         }    
 
         //to store all the rowids from the left side of the node recursivesly
         if(operationType == OperatorType.LESSTHAN || operationType == OperatorType.LESSTHANOREQUAL)
         {
            if(page.pageType == PageType.LEAFINDEX)
-               rowIds.addAll(getRowIdsLeftOf(page.parentPageNo,indexValues[0]));
+               rowId.addAll(getLeftRowId(page.parentPageNo,indexValues[0]));
            else 
-                rowIds.addAll(getRowIdsLeftOf(page.pageNo,condition.comparisonValue));
+                rowId.addAll(getLeftRowId(page.pageNo,condition.comparisonValue));
         }
 
          //to store all the rowids from the right side of the node recursively
         if(operationType == OperatorType.GREATERTHAN || operationType == OperatorType.GREATERTHANOREQUAL)
         {
          if(page.pageType == PageType.LEAFINDEX)
-            rowIds.addAll(getRowIdsRightOf(page.parentPageNo,indexValues[indexValues.length - 1]));
+            rowId.addAll(getRightRowId(page.parentPageNo,indexValues[indexValues.length - 1]));
             else 
-              rowIds.addAll(getRowIdsRightOf(page.pageNo,condition.comparisonValue));
+              rowId.addAll(getRightRowId(page.pageNo,condition.comparisonValue));
         }
-        return rowIds;
+        return rowId;
     }
 
     /**
      * This method is used to get the rowids that are right to given node
      * @param pgNo
-     * @param idxVal
-     * @return rowIds
+     * @param indexVal
+     * @return rowId
      */
-    private List<Integer> getRowIdsRightOf(int pgNo, String idxVal)
+    private List<Integer> getRightRowId(int pgNo, String indexVal)
     {
-        List<Integer> rowIds = new ArrayList<>();
+        List<Integer> rowId = new ArrayList<>();
 
         if(pgNo == -1)
-            return rowIds;
-        Page page = new Page(this.bFile,pgNo);
+            return rowId;
+        Page page = new Page(this.binFile,pgNo);
         List<String> indexValues = Arrays.asList(page.getIdxVals().toArray(new String[page.getIdxVals().size()]));
-        for(int i=indexValues.size() - 1; i >= 0 && SpecialCondition.compare(indexValues.get(i), idxVal, page.indexValueDataType) > 0; i--)
+        for(int i=indexValues.size() - 1; i >= 0 && SpecialCondition.compare(indexValues.get(i), indexVal, page.indexValueDataType) > 0; i--)
         {
-               rowIds.addAll(page.indexValuePointer.get(indexValues.get(i)).getIndxNd().rowids);
-                addChildRowIds(page.rightPage, rowIds);
+               rowId.addAll(page.indexValuePointer.get(indexValues.get(i)).getIndxNd().rowids);
+                addChildRowIds(page.rightPage, rowId);
          }
 
-        if(page.indexValuePointer.get(idxVal)!= null)
-           addChildRowIds(page.indexValuePointer.get(idxVal).rightPageNo, rowIds);
+        if(page.indexValuePointer.get(indexVal)!= null)
+           addChildRowIds(page.indexValuePointer.get(indexVal).rightPageNo, rowId);
 
-        return rowIds;
+        return rowId;
     }
 
     /**
@@ -155,10 +155,10 @@ public class BTree {
     {
         if(pageNo == -1)
             return;
-        Page page = new Page(this.bFile, pageNo);
+        Page page = new Page(this.binFile, pageNo);
             for (IndexRecord record :page.indexValuePointer.values())
             {
-                rowId.addAll(record.rowIds);
+                rowId.addAll(record.rowId);
                 if(page.pageType == PageType.INTERIORINDEX)
                  {
                     addChildRowIds(record.leftPageNo, rowId);
@@ -178,15 +178,15 @@ public class BTree {
     }
 
     /**
-     * This method is used to insert rows for a given list of rowIds and attribute into the index page
+     * This method is used to insert rows for a given list of rowId and attribute into the index page
      * @param attr
      * @param rowId
      */
     public void insertRow(TableAttribute attr,List<Integer> rowId)
     {
         try{
-            int pageNo = getNearestPageNo(root, attr.fieldValue) ;
-            Page page = new Page(bFile, pageNo);
+            int pageNo = getClosestPgNo(rt, attr.fieldValue) ;
+            Page page = new Page(binFile, pageNo);
             page.addIdx(new IndexNode(attr,rowId));
             }
             catch(IOException e)
@@ -203,8 +203,8 @@ public class BTree {
     public void deleteRow(TableAttribute attr, int rowId)
     {
         try{
-            int pageNo = getNearestPageNo(root, attr.fieldValue) ;
-            Page page = new Page(bFile, pageNo);
+            int pageNo = getClosestPgNo(rt, attr.fieldValue) ;
+            Page page = new Page(binFile, pageNo);
             IndexNode tempNode = page.indexValuePointer.get(attr.fieldValue).getIndxNd();
             //remove the rowid from the index value
             tempNode.rowids.remove(tempNode.rowids.indexOf(rowId));
