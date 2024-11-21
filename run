@@ -1,0 +1,12 @@
+#!/bin/bash
+
+
+# Build
+cd src
+javac -g DavisBase.java
+mv *.class ./bin/
+
+
+# Run
+cd ../bin
+java DavisBase
