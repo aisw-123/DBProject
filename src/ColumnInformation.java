@@ -4,31 +4,31 @@ import java.io.File;
 /* Class to denote column name and datatype  of table metadata */
 public class ColumnInformation
 {
-    public DataTypes dataType; // data type    
-    public boolean isUnique; // to check if column is unique
-    public Short ordinalPosition; // add columns ordinally
-    public boolean hasIndex; 
-    public boolean isPrimaryKey; //to assign column as primary key
-    public String columnName; // column name
+    public DataTypes dType; // data type    
+    public boolean unique; // to check if column is unique
+    public Short ordPos; // add columns ordinally
+    public boolean hasIdx; 
+    public boolean isPrimKey; //to assign column as primary key
+    public String colName; // column name
     public boolean isNullable; 
-    public String tableName; // table name to perfoem operation on column
+    public String tblName; // table name to perfoem operation on column
 
     ColumnInformation(){
         
     }
-    ColumnInformation(String tblName,DataTypes datatype,String clmName,boolean isUnique,boolean isNullable,short ordPosition){
-        this.dataType = datatype;
-        this.columnName = clmName;
-        this.isUnique = isUnique;
+    ColumnInformation(String tblName,DataTypes datatype,String clmName,boolean unique,boolean isNullable,short ordPosition){
+        this.dType = datatype;
+        this.colName = clmName;
+        this.unique = unique;
         this.isNullable = isNullable;
-        this.ordinalPosition = ordPosition;
-        this.tableName = tblName;
+        this.ordPos = ordPosition;
+        this.tblName = tblName;
 
-        this.hasIndex = (new File(TableUtils.getIndexFilePath(tableName, clmName)).exists());
+        this.hasIdx = (new File(TableUtils.getIndexFilePath(tblName, clmName)).exists());
 
     }
 
     public void setAsPrimaryKey(){
-        isPrimaryKey = true;
+        isPrimKey = true;
     }
 }
