@@ -16,48 +16,48 @@ import java.math.BigInteger;
  
 public class MetaData{
 
-    public int recordCount; //total Record
-    public List<TableRecord> columnData; //column data for table (Table Record object)
-    public List<ColumnInformation> columnNameAttrs; //column name attributes
-    public List<String> columnNames; //column name
-    public String tableName; //table name
-    public boolean tableExists; // to verfy if table exists or not
-    public int rootPageNo; //root page number
-    public int lastRowId; // last row id of table
+    public int recCount; //total Record
+    public List<TableRecord> colData; //column data for table (Table Record object)
+    public List<ColumnInformation> colNameAttrs; //column name attributes
+    public List<String> colNames; //column name
+    public String tabName; //table name
+    public boolean tabExists; // to verfy if table exists or not
+    public int rootPgNo; //root page number
+    public int lstRowId; // last row id of table
 
 
-    public MetaData(String tableName)
+    public MetaData(String tabName)
     {
-        this.tableName = tableName;
-        tableExists = false;
+        this.tabName = tabName;
+        tabExists = false;
         try {
 
-            RandomAccessFile dbtableCatelog = new RandomAccessFile(
+            RandomAccessFile dbtabCatalog = new RandomAccessFile(
             TableUtils.getTablePath(DavisBaseBinaryFile.tablesTable), "r");
             
             //get the root page of the table
-            int rootPageNo = DavisBaseBinaryFile.getRootPage(dbtableCatelog);
+            int rootPgNo = DavisBaseBinaryFile.getRootPage(dbtabCatalog);
            
-            BPlusOneTree bplusOneTree = new BPlusOneTree(dbtableCatelog, rootPageNo,tableName);
+            BPlusOneTree bplusOneTree = new BPlusOneTree(dbtabCatalog, rootPgNo,tabName);
             //search through all leaf papges in davisbase_tables
             for (Integer pageNo : bplusOneTree.getAllLeaves()) {
-               Page page = new Page(dbtableCatelog, pageNo);
+               Page page = new Page(dbtabCatalog, pageNo);
                //search theough all the records in each page
                for (TableRecord Record : page.getPageRecords()) {
                    //if the Record with table is found, get the root page No and Record count; break the loop
-                  if (new String(Record.getAttributes().get(0).fieldValue).equals(tableName)) {
-                    this.rootPageNo = Integer.parseInt(Record.getAttributes().get(3).fieldValue);
-                    recordCount = Integer.parseInt(Record.getAttributes().get(1).fieldValue);
-                    tableExists = true;
+                  if (new String(Record.getAttributes().get(0).fieldValue).equals(tabName)) {
+                    this.rootPgNo = Integer.parseInt(Record.getAttributes().get(3).fieldValue);
+                    recCount = Integer.parseInt(Record.getAttributes().get(1).fieldValue);
+                    tabExists = true;
                      break;
                   }
                }
-               if(tableExists)
+               if(tabExists)
                 break;
             }
    
-            dbtableCatelog.close();
-            if(tableExists)
+            dbtabCatalog.close();
+            if(tabExists)
             {
                loadColumnData();
             } else {
@@ -65,7 +65,7 @@ public class MetaData{
             }
             
          } catch (Exception e) {
-           // System.out.println("! Error while checking Table " + tableName + " exists.");
+           // System.out.println("! Error while checking Table " + tabName + " exists.");
             //debug: System.out.println(e);
          }
     }
@@ -74,7 +74,7 @@ public class MetaData{
 				List<Integer> ordPostions = new ArrayList<>();
 				for(String column :columns)
 				{
-					ordPostions.add(columnNames.indexOf(column));
+					ordPostions.add(colNames.indexOf(column));
                 }
                 return ordPostions;
     }
@@ -85,12 +85,12 @@ public class MetaData{
   
            RandomAccessFile dbColumnsCatalog = new RandomAccessFile(
             TableUtils.getTablePath(DavisBaseBinaryFile.columnsTable), "r");
-           int rootPageNo = DavisBaseBinaryFile.getRootPage(dbColumnsCatalog);
+           int rootPgNo = DavisBaseBinaryFile.getRootPage(dbColumnsCatalog);
   
-           columnData = new ArrayList<>();
-           columnNameAttrs = new ArrayList<>();
-           columnNames = new ArrayList<>();
-           BPlusOneTree bPlusOneTree = new BPlusOneTree(dbColumnsCatalog, rootPageNo,tableName);
+           colData = new ArrayList<>();
+           colNameAttrs = new ArrayList<>();
+           colNames = new ArrayList<>();
+           BPlusOneTree bPlusOneTree = new BPlusOneTree(dbColumnsCatalog, rootPgNo,tabName);
          
            /* Get all columns from the davisbase_columns, loop through all the leaf pages 
            and find the records with the table name */
@@ -103,10 +103,10 @@ public class MetaData{
                  if (Record.getAttributes().get(0).fieldValue.equals(tableName)) {
                     {
                      //set column information in the data members of the class
-                       columnData.add(Record);
-                       columnNames.add(Record.getAttributes().get(1).fieldValue);
+                       colData.add(Record);
+                       colNames.add(Record.getAttributes().get(1).fieldValue);
                        ColumnInformation columnInfo = new ColumnInformation(
-                                          tableName  
+                                          tabName  
                                         , DataTypes.get(Record.getAttributes().get(2).fieldValue)
                                         , Record.getAttributes().get(1).fieldValue
                                         , Record.getAttributes().get(6).fieldValue.equals("YES")
@@ -117,7 +117,7 @@ public class MetaData{
                     if(Record.getAttributes().get(5).fieldValue.equals("PRI"))
                           columnInfo.setAsPrimaryKey();
                         
-                     columnNameAttrs.add(columnInfo);                      
+                     colNameAttrs.add(columnInfo);                      
                     }
                  }
               }
@@ -125,7 +125,7 @@ public class MetaData{
   
            dbColumnsCatalog.close();
         } catch (Exception e) {
-           System.out.println("! Error while getting column data for " + tableName);
+           System.out.println("! Error while getting column data for " + tabName);
         }
      }
 
@@ -138,9 +138,9 @@ public class MetaData{
 
      List<String> lColumns =new ArrayList<>(columns);
 
-      for (ColumnInformation column_name_attr : columnNameAttrs) {
-         if (lColumns.contains(column_name_attr.columnName))
-            lColumns.remove(column_name_attr.columnName);
+      for (ColumnInformation column_name_attr : colNameAttrs) {
+         if (lColumns.contains(column_name_attr.colNames))
+            lColumns.remove(column_name_attr.colNames);
       }
 
       return lColumns.isEmpty();
@@ -152,53 +152,53 @@ public class MetaData{
 
    //update root page in the tables catalog
    try{
-         RandomAccessFile tableFile = new RandomAccessFile(TableUtils.getTablePath(tableName), "r");
+         RandomAccessFile tableFile = new RandomAccessFile(TableUtils.getTablePath(tabName), "r");
    
          Integer rootPageNo = DavisBaseBinaryFile.getRootPage(tableFile);
          tableFile.close();
          // initialise davisbase catelog                   
-         RandomAccessFile dbtableCatelog = new RandomAccessFile(TableUtils.getTablePath(DavisBaseBinaryFile.tablesTable), "rw");       
-         DavisBaseBinaryFile tablesBinaryFile = new DavisBaseBinaryFile(dbtableCatelog);
+         RandomAccessFile dbtabCatalog = new RandomAccessFile(TableUtils.getTablePath(DavisBaseBinaryFile.tablesTable), "rw");       
+         DavisBaseBinaryFile tablesBinaryFile = new DavisBaseBinaryFile(dbtabCatalog);
          MetaData tablesMetaData = new MetaData(DavisBaseBinaryFile.tablesTable);         
          SpecialCondition cdtn = new SpecialCondition(DataTypes.TEXT);
          cdtn.setColumName("table_name");
          cdtn.columnOrdinal = 0;
-         cdtn.setConditionValue(tableName);
+         cdtn.setConditionValue(tabName);
          cdtn.setOp("=");
 
          List<String> columns = Arrays.asList("record_count","root_page");
          List<String> newValues = new ArrayList<>();
 
-         newValues.add(new Integer(recordCount).toString());
-         newValues.add(new Integer(rootPageNo).toString());
+         newValues.add(new Integer(recCount).toString());
+         newValues.add(new Integer(rootPgNo).toString());
 
          tablesBinaryFile.updateRecords(tablesMetaData,cdtn,columns,newValues);                                              
          dbtableCatelog.close();
    }
    catch(IOException e){
-      System.out.println("! Error updating meta data for " + tableName);
+      System.out.println("! Error updating meta data for " + tabName);
    }   
  }
 
 // validate column before adding whether that column exists or not
  public boolean validateInsert(List<TableAttribute> row) throws IOException
  {
-   RandomAccessFile tableFile = new RandomAccessFile(TableUtils.getTablePath(tableName), "r");
+   RandomAccessFile tableFile = new RandomAccessFile(TableUtils.getTablePath(tabName), "r");
    DavisBaseBinaryFile file = new DavisBaseBinaryFile(tableFile);                  
-      for(int i=0;i<columnNameAttrs.size();i++)
+      for(int i=0;i<colNameAttrs.size();i++)
       {      
-         SpecialCondition cdtn = new SpecialCondition(columnNameAttrs.get(i).dataType);
-         cdtn.columnName = columnNameAttrs.get(i).columnName;
+         SpecialCondition cdtn = new SpecialCondition(colNameAttrs.get(i).dataType);
+         cdtn.colNames = colNameAttrs.get(i).colNames;
          cdtn.columnOrdinal = i;
          cdtn.setOp("=");
 
-         if(columnNameAttrs.get(i).isUnique)
+         if(colNameAttrs.get(i).isUnique)
          {
                cdtn.setConditionValue(row.get(i).fieldValue);
                
-               if(file.recordExists(this, Arrays.asList(columnNameAttrs.get(i).columnName), cdtn)){
+               if(file.recordExists(this, Arrays.asList(colNameAttrs.get(i).colNames), cdtn)){
                   // trying to add column name that already exists
-                  System.out.println("! Insert failed: Column "+ columnNameAttrs.get(i).columnName + " should be unique." );
+                  System.out.println("! Insert failed: Column "+ colNameAttrs.get(i).colNames + " should be unique." );
                   tableFile.close();
                   return false;
                }      
