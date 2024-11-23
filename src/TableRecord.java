@@ -1,45 +1,38 @@
 import java.util.List;
-
 import java.util.Arrays;
 import java.util.ArrayList;
 
-//This class contains helper methods for converting the table record data (header and body) into byte array
-public class TableRecord
-{
-    public int rowId; //row id of unique row
-    public Byte[] recordBody; //body
-    public short recordOffset; // record off set
-    public Byte[] colDatatypes; // column data type
-    public short pageHeaderIndex; // page header index
-    private List<TableAttribute> attributes; // attributes
 
-    // Table attribute to define record
-    TableRecord(short pageIndex,int rowId, short recordoffset, byte[] columnDatatypes, byte[] recordBody)
-    {
-        this.rowId = rowId;
-        this.recordBody= ByteConvertor.byteToBytes(recordBody);
-        this.colDatatypes = ByteConvertor.byteToBytes(columnDatatypes);
-        this.recordOffset =  recordoffset;
-        this.pageHeaderIndex = pageIndex;
+public class TableRecord {
+    
+    public int rId; //row id 
+    public Byte[] recBody; //body for records
+    public short recOffst; // record offset
+    public Byte[] colDt; // column data type
+    public short pgHeaderIndx; // page header index
+    private List<TableAttribute> attr; // attributes
+
+
+    TableRecord(short pageIndex,int rowId, short recordoffset, byte[] columnDatatypes, byte[] recordBody) {
+        this.rId = rowId;
+        this.recBody= ByteConvertor.byteToBytes(recordBody);
+        this.colDt = ByteConvertor.byteToBytes(columnDatatypes);
+        this.recOffst =  recordoffset;
+        this.pgHeaderIndx = pageIndex;
         setTableAttributes();
     }
 
-    // set values in record
-    private void setTableAttributes()
-    {
-        attributes = new ArrayList<>();
-        int pointer = 0;
-        for(Byte dataType : colDatatypes)
-        {
-             byte[] fieldValue = ByteConvertor.Bytestobytes(Arrays.copyOfRange(recordBody,pointer, pointer + DataTypes.getLength(dataType)));
-             attributes.add(new TableAttribute(DataTypes.get(dataType), fieldValue));
-                    pointer =  pointer + DataTypes.getLength(dataType);
+    private void setTableAttributes() {
+        attr = new ArrayList<>();
+        int pntr = 0;
+        for(Byte dataType : colDt) {
+            byte[] fieldValue = ByteConvertor.Bytestobytes(Arrays.copyOfRange(recBody,pntr, pntr + DataTypes.getLength(dataType)));
+            attr.add(new TableAttribute(DataTypes.get(dataType), fieldValue));
+                    pntr =  pntr + DataTypes.getLength(dataType);
         }
     }
 
-    // return table attribute 
-     public List<TableAttribute> getAttributes()
-    {
-        return attributes;
+    public List<TableAttribute> getAttributes() {
+        return attr;
     }    
 }
