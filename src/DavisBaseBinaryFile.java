@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 public class DavisBaseBinaryFile {
-   public static String columnsTable = "davisbase_columns";
-   public static String tablesTable = "davisbase_tables";
+   public static String systemColumnsFile = "davisbase_columns";
+   public static String systemTablesFile = "davisbase_tables";
    public static boolean showRowId = false;
-   public static boolean dataStoreInitialized = false;
+   public static boolean isSystemInitialized = false;
 
    RandomAccessFile file;
 
@@ -140,7 +140,7 @@ public class DavisBaseBinaryFile {
     * initializes two .tbl files to implement the two system tables,
     * davisbase_tables and davisbase_columns
     */
-   public static void initializeData() {
+   public static void initializeSystemTables() {
 
       /** Create data directory at the current OS location to hold */
       try {
