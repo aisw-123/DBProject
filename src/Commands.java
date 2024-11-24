@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 public class Commands {
 
-    public static void parseUserEntry(String userString) {
+    public static void parseUserCommand(String userString) {
 
         /*
          * commandTokens is an array of Strings that contains one token per array
