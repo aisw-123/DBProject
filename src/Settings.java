@@ -6,7 +6,7 @@ public class Settings {
     static int pageSize = 512;
 
 
-    public static boolean isExit() {
+    public static boolean isExitRequested() {
         return isExit;
     }
 
@@ -14,7 +14,7 @@ public class Settings {
         isExit = e;
     }
 
-    public static String getPrompt() {
+    public static String getPromptMessage() {
         return prompt;
     }
 
