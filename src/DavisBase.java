@@ -1,31 +1,39 @@
 import java.io.File;
 import java.util.Scanner;
 
-public class DavisBase {
-    static Scanner scanner = new Scanner(System.in).useDelimiter(";");
+public class DavisBase { 
 
-    //Main
+    static Scanner commandInputScanner = new Scanner(System.in).useDelimiter(";"); // Renamed for clarity
+
     public static void main(String[] args) {
 
-        /* Display start lines */
-        TableUtils.splashScreen();
-        File dataDir = new File("data");
+        // Display the welcome screen
+        TableUtils.displayWelcomeScreen(); // Renamed splashScreen() to displayWelcomeScreen
 
-        if (!new File(dataDir, DavisBaseBinaryFile.tablesTable + ".tbl").exists()
-                || !new File(dataDir, DavisBaseBinaryFile.columnsTable + ".tbl").exists())
-            DavisBaseBinaryFile.initializeData();
-        else
-            DavisBaseBinaryFile.dataStoreInitialized = true;
+        File dataDirectory = new File("data"); // Renamed dataDir to dataDirectory
 
-        
-        String userCommand = ""; //Get the user input from prompt
-
-        while (!Settings.isExit()) {
-            System.out.print(Settings.getPrompt());
-            userCommand = scanner.next().replace("\n", " ").replace("\r", "").trim().toLowerCase(); //commnad is case insensitive
-            
-            Commands.parseUserEntry(userCommand);
+        // Check if system tables exist, and initialize if they don't
+        if (!new File(dataDirectory, DavisBaseBinaryFile.systemTablesFile + ".tbl").exists()
+                || !new File(dataDirectory, DavisBaseBinaryFile.systemColumnsFile + ".tbl").exists()) {
+            DavisBaseBinaryFile.initializeSystemTables(); // Renamed initializeData() to initializeSystemTables()
+        } else {
+            DavisBaseBinaryFile.isSystemInitialized = true; // Renamed dataStoreInitialized to isSystemInitialized
         }
-        System.out.println("Exiting...");
+
+        String userCommand = ""; // Renamed userCommand to make intent explicit
+
+        // Main loop to process user commands
+        while (!Settings.isExitRequested()) { // Renamed isExit() to isExitRequested()
+            System.out.print(Settings.getPromptMessage()); // Renamed getPrompt() to getPromptMessage()
+            userCommand = commandInputScanner.next()
+                .replace("\n", " ")
+                .replace("\r", "")
+                .trim()
+                .toLowerCase(); // Normalize input for consistent processing
+
+            Commands.parseUserCommand(userCommand); // Renamed parseUserEntry() to parseUserCommand()
+        }
+
+        System.out.println("Exiting DavisBase...");
     }
 }
