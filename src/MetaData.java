@@ -169,8 +169,8 @@ public class MetaData{
          List<String> columns = Arrays.asList("record_count","root_page");
          List<String> newValues = new ArrayList<>();
 
-         newValues.add(new Integer(recCount).toString());
-         newValues.add(new Integer(rootPgNo).toString());
+         newValues.add(Integer.valueOf(recCount).toString());
+         newValues.add(Integer.valueOf(rootPgNo).toString());
 
          tablesBinaryFile.updateRecords(tablesMetaData,cdtn,columns,newValues);                                              
          dbtableCatelog.close();
