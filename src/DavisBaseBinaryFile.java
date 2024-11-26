@@ -128,7 +128,7 @@ public class DavisBaseBinaryFile {
              }
       }
     
-      if(!tablemetaData.tableName.equals(tablesTable) && !tablemetaData.tableName.equals(columnsTable))
+      if(!tablemetaData.tableName.equals(systemTablesFile) && !tablemetaData.tableName.equals(systemColumnsFile))
           System.out.println("* " + count+" record(s) updated.");
           
          return count;
@@ -163,19 +163,19 @@ public class DavisBaseBinaryFile {
          int currentPageNo = 0;
 
          RandomAccessFile davisbaseTablesCatalog = new RandomAccessFile(
-                 TableUtils.getTablePath(tablesTable), "rw");
+                 TableUtils.getTablePath(systemTablesFile), "rw");
          Page.addNewPage(davisbaseTablesCatalog, PageType.LEAF, -1, -1);
          Page page = new Page(davisbaseTablesCatalog,currentPageNo);
 
-         page.addTbRows(tablesTable,Arrays.asList(new TableAttribute[] {
-                 new TableAttribute(DataTypes.TEXT, DavisBaseBinaryFile.tablesTable),
+         page.addTbRows(systemTablesFile,Arrays.asList(new TableAttribute[] {
+                 new TableAttribute(DataTypes.TEXT, DavisBaseBinaryFile.systemTablesFile),
                  new TableAttribute(DataTypes.INT, "2"),
                  new TableAttribute(DataTypes.SMALLINT, "0"),
                  new TableAttribute(DataTypes.SMALLINT, "0")
          }));
 
-         page.addTbRows(tablesTable,Arrays.asList(new TableAttribute[] {
-                 new TableAttribute(DataTypes.TEXT, DavisBaseBinaryFile.columnsTable),
+         page.addTbRows(systemTablesFile,Arrays.asList(new TableAttribute[] {
+                 new TableAttribute(DataTypes.TEXT, DavisBaseBinaryFile.systemColumnsFile),
                  new TableAttribute(DataTypes.INT, "11"),
                  new TableAttribute(DataTypes.SMALLINT, "0"),
                  new TableAttribute(DataTypes.SMALLINT, "2") }));
@@ -191,32 +191,32 @@ public class DavisBaseBinaryFile {
       /** Create davisbase_columns systems catalog */
       try {
          RandomAccessFile davisbaseColumnsCatalog = new RandomAccessFile(
-                 TableUtils.getTablePath(columnsTable), "rw");
+                 TableUtils.getTablePath(systemColumnsFile), "rw");
          Page.addNewPage(davisbaseColumnsCatalog, PageType.LEAF, -1, -1);
          Page page = new Page(davisbaseColumnsCatalog, 0);
 
          short ordinal_position = 1;
 
          //Add new columns to davisbase_tables
-         page.addNewCols(new ColumnInformation(tablesTable,DataTypes.TEXT, "table_name", true, false, ordinal_position++));
-         page.addNewCols(new ColumnInformation(tablesTable,DataTypes.INT, "record_count", false, false, ordinal_position++));
-         page.addNewCols(new ColumnInformation(tablesTable,DataTypes.SMALLINT, "avg_length", false, false, ordinal_position++));
-         page.addNewCols(new ColumnInformation(tablesTable,DataTypes.SMALLINT, "root_page", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemTablesFile,DataTypes.TEXT, "table_name", true, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemTablesFile,DataTypes.INT, "record_count", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemTablesFile,DataTypes.SMALLINT, "avg_length", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemTablesFile,DataTypes.SMALLINT, "root_page", false, false, ordinal_position++));
 
          //Add new columns to davisbase_columns
 
          ordinal_position = 1;
 
-         page.addNewCols(new ColumnInformation(columnsTable,DataTypes.TEXT, "table_name", false, false, ordinal_position++));
-         page.addNewCols(new ColumnInformation(columnsTable,DataTypes.TEXT, "column_name", false, false, ordinal_position++));
-         page.addNewCols(new ColumnInformation(columnsTable,DataTypes.SMALLINT, "data_type", false, false, ordinal_position++));
-         page.addNewCols(new ColumnInformation(columnsTable,DataTypes.SMALLINT, "ordinal_position", false, false, ordinal_position++));
-         page.addNewCols(new ColumnInformation(columnsTable,DataTypes.TEXT, "is_nullable", false, false, ordinal_position++));
-         page.addNewCols(new ColumnInformation(columnsTable,DataTypes.SMALLINT, "column_key", false, true, ordinal_position++));
-         page.addNewCols(new ColumnInformation(columnsTable,DataTypes.SMALLINT, "is_unique", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemColumnsFile,DataTypes.TEXT, "table_name", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemColumnsFile,DataTypes.TEXT, "column_name", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemColumnsFile,DataTypes.SMALLINT, "data_type", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemColumnsFile,DataTypes.SMALLINT, "ordinal_position", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemColumnsFile,DataTypes.TEXT, "is_nullable", false, false, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemColumnsFile,DataTypes.SMALLINT, "column_key", false, true, ordinal_position++));
+         page.addNewCols(new ColumnInformation(systemColumnsFile,DataTypes.SMALLINT, "is_unique", false, false, ordinal_position++));
 
          davisbaseColumnsCatalog.close();
-         dataStoreInitialized = true;
+         isSystemInitialized = true;
       } catch (Exception e) {
          out.println("Unable to create the database_columns file");
          out.println(e);
