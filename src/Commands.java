@@ -28,7 +28,7 @@ public class Commands {
         switch (commandTokens.get(0)) {
             case "show":
                 if (commandTokens.get(1).equals("tables"))
-                    parseUserEntry("select * from davisbase_tables");
+                    parseUserCommand("select * from davisbase_tables");
                 else if (commandTokens.get(1).equals("rowid")) {
                     DavisBaseBinaryFile.showRowId = true;
                     System.out.println("* Table Select will now include RowId.");
@@ -505,18 +505,18 @@ public class Commands {
 
     public static void test() {
         Scanner scan = new Scanner(System.in);
-        parseUserEntry("create table test (id int, name text)");
+        parseUserCommand("create table test (id int, name text)");
         scan.nextLine();
-        parseUserEntry("create index on test (name)");
+        parseUserCommand("create index on test (name)");
         scan.nextLine();
         for (int i = 1; i < 35; i++)
         {
             //   System.out.println(i);
-            parseUserEntry("insert into test (id , name) values (" + (i) + ", "+ i + "'arun' )");
+            parseUserCommand("insert into test (id , name) values (" + (i) + ", "+ i + "'arun' )");
 
             //scan.nextLine();
         }
-        parseUserEntry("show tables");
+        parseUserCommand("show tables");
 
         scan.nextLine();
 
@@ -613,8 +613,8 @@ public class Commands {
         String tableName = dropTableTokens.get(2);
 
 
-        parseDeleteTable("delete from table "+ DavisBaseBinaryFile.tablesTable + " where table_name = '"+tableName+"' ");
-        parseDeleteTable("delete from table "+ DavisBaseBinaryFile.columnsTable + " where table_name = '"+tableName+"' ");
+        parseDeleteTable("delete from table "+ DavisBaseBinaryFile.systemTablesFile + " where table_name = '"+tableName+"' ");
+        parseDeleteTable("delete from table "+ DavisBaseBinaryFile.systemColumnsFile + " where table_name = '"+tableName+"' ");
         File tableFile = new File("data/"+tableName+".tbl");
         if(tableFile.delete()){
             System.out.println("table deleted");
@@ -709,15 +709,15 @@ public class Commands {
 
             // update sys file
             RandomAccessFile davisbaseTablesCatalog = new RandomAccessFile(
-                    TableUtils.getTablePath(DavisBaseBinaryFile.tablesTable), "rw");
-            MetaData davisbaseTableMetaData = new MetaData(DavisBaseBinaryFile.tablesTable);
+                    TableUtils.getTablePath(DavisBaseBinaryFile.systemTablesFile), "rw");
+            MetaData davisbaseTableMetaData = new MetaData(DavisBaseBinaryFile.systemTablesFile);
 
             int pageNo = BPlusOneTree.getPgNoForInsert(davisbaseTablesCatalog, davisbaseTableMetaData.rootPageNo);
 
             Page page = new Page(davisbaseTablesCatalog, pageNo);
 
-            int rowNo = page.addTbRows(DavisBaseBinaryFile.tablesTable,
-                    Arrays.asList(new TableAttribute[] { new TableAttribute(DataTypes.TEXT, tableName), // DavisBaseBinaryFile.tablesTable->test
+            int rowNo = page.addTbRows(DavisBaseBinaryFile.systemTablesFile,
+                    Arrays.asList(new TableAttribute[] { new TableAttribute(DataTypes.TEXT, tableName), // DavisBaseBinaryFile.systemTablesFile->test
                             new TableAttribute(DataTypes.INT, "0"), new TableAttribute(DataTypes.SMALLINT, "0"),
                             new TableAttribute(DataTypes.SMALLINT, "0") }));
             davisbaseTablesCatalog.close();
@@ -731,8 +731,8 @@ public class Commands {
             tableFile.close();
 
             RandomAccessFile davisbaseColumnsCatalog = new RandomAccessFile(
-                    TableUtils.getTablePath(DavisBaseBinaryFile.columnsTable), "rw");
-            MetaData davisbaseColumnsMetaData = new MetaData(DavisBaseBinaryFile.columnsTable);
+                    TableUtils.getTablePath(DavisBaseBinaryFile.systemColumnsFile), "rw");
+            MetaData davisbaseColumnsMetaData = new MetaData(DavisBaseBinaryFile.systemColumnsFile);
             pageNo = BPlusOneTree.getPgNoForInsert(davisbaseColumnsCatalog, davisbaseColumnsMetaData.rootPageNo);
 
             Page page1 = new Page(davisbaseColumnsCatalog, pageNo);
@@ -752,9 +752,9 @@ public class Commands {
 
             System.out.println("! Error on creating Table");
             System.out.println(e.getMessage());
-            parseDeleteTable("delete from table " + DavisBaseBinaryFile.tablesTable + " where table_name = '" + tableName
+            parseDeleteTable("delete from table " + DavisBaseBinaryFile.systemTablesFile + " where table_name = '" + tableName
                     + "' ");
-            parseDeleteTable("delete from table " + DavisBaseBinaryFile.columnsTable + " where table_name = '" + tableName
+            parseDeleteTable("delete from table " + DavisBaseBinaryFile.systemColumnsFile + " where table_name = '" + tableName
                     + "' ");
         }
 
