@@ -142,7 +142,7 @@ public class Page {
   public void addNewCols(ColumnInformation colInfo) throws IOException
   {
     try {
-      addTbRows(DavisBaseBinaryFile.columnsTable, Arrays.asList(new TableAttribute[] {
+      addTbRows(DavisBaseBinaryFile.systemColumnsFile, Arrays.asList(new TableAttribute[] {
         new TableAttribute(DataTypes.TEXT, colInfo.tableName),
         new TableAttribute(DataTypes.TEXT, colInfo.columnName),
         new TableAttribute(DataTypes.TEXT, colInfo.dataType.toString()),
@@ -170,7 +170,7 @@ public int addTbRows(String tbName,List<TableAttribute> attr) throws IOException
       List<Byte> recordBody = new ArrayList<Byte>();
 
       MetaData metaData  = null;
-      if(DavisBaseBinaryFile.dataStoreInitialized)
+      if(DavisBaseBinaryFile.isSystemInitialized)
       {
         metaData = new MetaData(tbName);
         if(!metaData.validateInsert(attr))
@@ -212,7 +212,7 @@ public int addTbRows(String tbName,List<TableAttribute> attr) throws IOException
                                 );
 
          refreshTableRecords = true;
-         if(DavisBaseBinaryFile.dataStoreInitialized)
+         if(DavisBaseBinaryFile.isSystemInitialized)
          {
             metaData.recordCount++;
             metaData.updateMetaData();
