@@ -33,7 +33,7 @@ public class MetaData{
         try {
 
             RandomAccessFile dbtabCatalog = new RandomAccessFile(
-            TableUtils.getTablePath(DavisBaseBinaryFile.tablesTable), "r");
+            TableUtils.getTablePath(DavisBaseBinaryFile.systemTablesFile), "r");
             
             //get the root page of the table
             int rootPgNo = DavisBaseBinaryFile.getRootPage(dbtabCatalog);
@@ -84,7 +84,7 @@ public class MetaData{
         try {
   
            RandomAccessFile dbColumnsCatalog = new RandomAccessFile(
-            TableUtils.getTablePath(DavisBaseBinaryFile.columnsTable), "r");
+            TableUtils.getTablePath(DavisBaseBinaryFile.systemColumnsFile), "r");
            int rootPgNo = DavisBaseBinaryFile.getRootPage(dbColumnsCatalog);
   
            colData = new ArrayList<>();
@@ -157,9 +157,9 @@ public class MetaData{
          Integer rootPageNo = DavisBaseBinaryFile.getRootPage(tableFile);
          tableFile.close();
          // initialise davisbase catelog                   
-         RandomAccessFile dbtabCatalog = new RandomAccessFile(TableUtils.getTablePath(DavisBaseBinaryFile.tablesTable), "rw");       
+         RandomAccessFile dbtabCatalog = new RandomAccessFile(TableUtils.getTablePath(DavisBaseBinaryFile.systemTablesFile), "rw");       
          DavisBaseBinaryFile tablesBinaryFile = new DavisBaseBinaryFile(dbtabCatalog);
-         MetaData tablesMetaData = new MetaData(DavisBaseBinaryFile.tablesTable);         
+         MetaData tablesMetaData = new MetaData(DavisBaseBinaryFile.systemTablesFile);         
          SpecialCondition cdtn = new SpecialCondition(DataTypes.TEXT);
          cdtn.setColumName("table_name");
          cdtn.columnOrdinal = 0;
