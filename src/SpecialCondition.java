@@ -31,7 +31,7 @@ public class SpecialCondition {
         } else if (stringOp.equals("<=")) {
             return OperatorType.LESSTHANOREQUAL;
         } else if (stringOp.equals("<>")) {
-            return OperatorType.NOT_EQUAL;
+            return OperatorType.NOTEQUAL;
         } else {
             System.out.println("! Operator \"" + stringOp + "\" is not supported.");
             return OperatorType.INVALID;
@@ -45,7 +45,7 @@ public class SpecialCondition {
                 return str1.compareTo(str2);
             case NULL:
                 return compareNullVals(str1, str2);
-            case default:
+            default:
                 return compareNumVals(str1, str2);
         }
     }
@@ -79,7 +79,7 @@ public class SpecialCondition {
             return diff < 0;
         } else if (op == OperatorType.GREATERTHAN) {
             return diff > 0;
-        } else if (op == OperatorType.EQUAL) {
+        } else if (op == OperatorType.EQUALTO) {
             return diff == 0;
         } else {
             return false;
@@ -97,22 +97,22 @@ public class SpecialCondition {
 
         // checks and handles null
         if (isNull(currentVal) || isNull(compVal)) 
-            return doOpOnDiff(ops, compare(currVal, compVal, DataTypes.NULL));
+            return doOpOnDiff(op, compare(currentVal, compVal, DataTypes.NULL));
 
         if (dt == DataTypes.TEXT || dt == DataTypes.NULL)
-            return doStrCom(currVal, ops);
+            return doStrCom(currentVal, op);
         else {
-            if(ops == OperatorType.LESSTHANOREQUAL) {
+            if(op == OperatorType.LESSTHANOREQUAL) {
                 return Long.parseLong(currentVal) <= Long.parseLong(compVal);
-            } else if (ops == OperatorType.GREATERTHANOREQUAL) {
+            } else if (op == OperatorType.GREATERTHANOREQUAL) {
                 return Long.parseLong(currentVal) >= Long.parseLong(compVal);
-            } else if (ops == OperatorType.NOTEQUAL) {
+            } else if (op == OperatorType.NOTEQUAL) {
                 return Long.parseLong(currentVal) != Long.parseLong(compVal);
-            } else if (ops == OperatorType.LESSTHAN){
+            } else if (op == OperatorType.LESSTHAN){
                 return Long.parseLong(currentVal) < Long.parseLong(compVal);
-            } else if (ops == OperatorType.GREATERTHAN) {
+            } else if (op == OperatorType.GREATERTHAN) {
                 return Long.parseLong(currentVal) > Long.parseLong(compVal);
-            } else if (ops == OperatorType.EQUAL) {
+            } else if (op == OperatorType.EQUALTO) {
                 return Long.parseLong(currentVal) == Long.parseLong(compVal);
             } else {
                 return false;
@@ -158,16 +158,16 @@ public class SpecialCondition {
     // In case of NOT operator, invert the operator
     private OperatorType negateOperator() {
         if (this.op == OperatorType.GREATERTHAN) {
-            return OperatorType.LESSTHANEQUAL;
+            return OperatorType.LESSTHANOREQUAL;
         } else if (this.op == OperatorType.LESSTHAN) {
-            return OperatorType.GREATERTHANEQUAL;
+            return OperatorType.GREATERTHANOREQUAL;
         } else if (this.op == OperatorType.EQUALTO) {
             return OperatorType.NOTEQUAL;
         } else if (this.op == OperatorType.NOTEQUAL) {
             return OperatorType.EQUALTO;
-        } else if (this.op == OperatorType.GREATERTHANEQUAL) {
+        } else if (this.op == OperatorType.GREATERTHANOREQUAL) {
             return OperatorType.LESSTHAN;
-        } else if (this.op == OperatorType.LESSTHANEQUAL) {
+        } else if (this.op == OperatorType.LESSTHANOREQUAL) {
             return OperatorType.GREATERTHAN;
         } else {
             System.out.println("! Operator \"" + this.op + "\" is invalid");

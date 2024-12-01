@@ -1,6 +1,6 @@
 public class TableUtils {
 
-	public static void displayWelcomeScreen()() {
+	public static void displayWelcomeScreen() {
 
 		// Print out the entry screen
 		System.out.println(printSeparator("-",80));

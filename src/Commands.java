@@ -39,7 +39,10 @@ public class Commands {
                 parseString(userString);
                 break;
             case "drop":
-                dropTable(userString);
+                if (commandTokens.get(1).equals("table"))
+                    dropTable(userString);
+                else if(commandTokens.get(1).equals("index"))
+                    dropIndex(userString);
                 break;
             case "create":
                 if (commandTokens.get(1).equals("table"))
@@ -203,6 +206,66 @@ public class Commands {
         System.out.println(e.getMessage());
     }
 }
+    public static void dropIndex(String dropIndexStr) {
+        ArrayList <String> dropIndxTokens = new ArrayList<>(Arrays.asList(dropIndexStr.split(" ")));
+
+        // make sure the command is in the right format
+        if (dropIndxTokens.size() != 5 || !dropIndxTokens.get(0).equalsIgnoreCase("drop") || !dropIndxTokens.get(1).equalsIgnoreCase("index") || !dropIndxTokens.get(3).equalsIgnoreCase("on")){
+            System.out.println("! Invalid drop index command");
+            return;
+        } 
+
+        String indxName = dropIndxTokens.get(2);
+        String tableName = dropIndxTokens.get(4);
+
+        try {
+            if (!new File(TableUtils.getIndexFilePath(tableName, indxName)).exists()) {
+                System.out.println("! Index " + indxName + " does not exists.");
+                return;
+            }
+
+            // delete the indx file
+            File indexFile = new File(TableUtils.getIndexFilePath(tableName, indxName));
+            if (indexFile.delete()) {
+                System.out.println("* Index file " + indxName + " deleted.");
+            } else {
+                System.out.println("! Failed to delete index file " + indxName + ".");
+                return;
+            }
+
+            RandomAccessFile colCatalog = new RandomAccessFile(TableUtils.getTablePath(DavisBaseBinaryFile.systemColumnsFile), "rw");
+            BPlusOneTree colTree = new BPlusOneTree(colCatalog, DavisBaseBinaryFile.getRootPage(colCatalog), DavisBaseBinaryFile.systemColumnsFile);
+
+            SpecialCondition  cond = new SpecialCondition(DataTypes.TEXT);
+            cond.setColumName("index_name");
+            cond.setConditionValue(indxName);
+            cond.setOp("=");
+
+            boolean indxMetaDataRmv = false;
+            for (Integer pageNo : colTree.getAllLeaves(cond)) {
+                Page page = new Page(colCatalog, pageNo);
+                List<TableRecord> recs = page.getPageRecords();
+
+                for(TableRecord record : recs) {
+                    if(record.getAttributes().get(0).fldVal.equals(indxName)) {
+                        page.deleteTableRecord(DavisBaseBinaryFile.systemColumnsFile, record.pgHeaderIndx);
+                        indxMetaDataRmv = true;
+                        System.out.println("* Metadata for index " + indxName + " removed from system columns table.");
+                    }
+                }
+
+                if(indxMetaDataRmv)
+                    break;
+            }
+
+            if(!indxMetaDataRmv) {
+                System.out.println("! Index metadata for " + indxName + "not found in system columns table");
+            }
+            colCatalog.close();
+        } catch (IOException e){
+            System.out.println("! Error while dropping index " + indxName + ": " + e.getMessage()); 
+        }
+    }
     public static void parseUpdateTable(String updateString) {
         ArrayList<String> updateTokens = new ArrayList<String>(Arrays.asList(updateString.split(" ")));
 
