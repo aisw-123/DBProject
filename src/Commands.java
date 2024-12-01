@@ -133,31 +133,39 @@ public class Commands {
 
     }
 
-    public static void parseCreateIdx(String createIdxStr) {
-        ArrayList<String> createIndexTokens = new ArrayList<String>(Arrays.asList(createIdxStr.split(" ")));
-        try {
-            if (!createIndexTokens.get(2).equals("on") || !createIdxStr.contains("(")
-                    || !createIdxStr.contains(")") && createIndexTokens.size() < 4) {
-                System.out.println("! Syntax Error");
-                return;
+    public static void parseCreateIdx(String createIdxStr) 
+    {
+        ArrayList<String> createIndexTokens = new ArrayList<>(Arrays.asList(createIdxStr.split(" ")));
+        try 
+        {
+            // Validate the basic structure of the command
+            if (!createIndexTokens.get(0).equalsIgnoreCase("create") ||
+            !createIndexTokens.get(1).equalsIgnoreCase("index") ||
+            !createIndexTokens.get(2).matches("[a-zA-Z0-9_]+") || // Index name validation
+            !createIndexTokens.get(3).equalsIgnoreCase("on") ||
+            !createIdxStr.contains("(") || !createIdxStr.contains(")")) {
+            System.out.println("! Syntax Error");
+            System.out.println("Expected Syntax: CREATE INDEX index_name ON table_name (column_name);");
+            return;
             }
 
+            String indexName = createIndexTokens.get(2); // Extract the index name
             String tableName = createIdxStr
-                    .substring(createIdxStr.indexOf("on") + 3, createIdxStr.indexOf("(")).trim();
+                .substring(createIdxStr.indexOf("on") + 3, createIdxStr.indexOf("(")).trim();
             String columnName = createIdxStr
-                    .substring(createIdxStr.indexOf("(") + 1, createIdxStr.indexOf(")")).trim();
+                .substring(createIdxStr.indexOf("(") + 1, createIdxStr.indexOf(")")).trim();
 
-            // check if the index already exists
+            // Check if the index already exists
             if (new File(TableUtils.getIndexFilePath(tableName, columnName)).exists()) {
-                System.out.println("! Index already exists");
-                return;
+            System.out.println("! Index already exists");
+            return;
             }
 
             RandomAccessFile tableFile = new RandomAccessFile(TableUtils.getTablePath(tableName), "rw");
 
             MetaData metaData = new MetaData(tableName);
 
-            if (!metaData.tableExists) {
+           if (!metaData.tableExists) {
                 System.out.println("! Invalid Table name");
                 tableFile.close();
                 return;
@@ -171,35 +179,30 @@ public class Commands {
                 return;
             }
 
-
-            // create index file
-            RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(tableName, columnName), "rw");
+            // Create the index file with the specified index name
+            RandomAccessFile indexFile = new RandomAccessFile("data/" + indexName + ".ndx", "rw");
             Page.addNewPage(indexFile, PageType.LEAFINDEX, -1, -1);
-
 
             if (metaData.recordCount > 0) {
                 BPlusOneTree bPlusOneTree = new BPlusOneTree(tableFile, metaData.rootPageNo, metaData.tableName);
-                for (int pageNo : bPlusOneTree.getAllLeaves()) {
+                for(int pageNo : bPlusOneTree.getAllLeaves()) {
                     Page page = new Page(tableFile, pageNo);
                     BTree bTree = new BTree(indexFile);
                     for (TableRecord record : page.getPageRecords()) {
                         bTree.insertRow(record.getAttributes().get(columnOrdinal), record.rowId);
-                    }
+                        }
                 }
             }
 
-            System.out.println("* Index created on the column : " + columnName);
+            System.out.println("* Index \"" + indexName + "\" created on the column: " + columnName);
             indexFile.close();
             tableFile.close();
 
-        } catch (IOException e) {
-
-            System.out.println("! Error on creating Index");
-            System.out.println(e);
-        }
-
+    } catch (IOException e) {
+        System.out.println("! Error on creating Index");
+        System.out.println(e.getMessage());
     }
-
+}
     public static void parseUpdateTable(String updateString) {
         ArrayList<String> updateTokens = new ArrayList<String>(Arrays.asList(updateString.split(" ")));
 
@@ -301,128 +304,149 @@ public class Commands {
     }
 
     public static void parseInsertTable(String queryString) {
-        // INSERT INTO table_name ( columns ) VALUES ( values );
-        ArrayList<String> insertTokens = new ArrayList<String>(Arrays.asList(queryString.split(" ")));
+    // INSERT INTO TABLE table_name VALUES (value1, value2, value3, ...);
+    ArrayList<String> insertTokens = new ArrayList<String>(Arrays.asList(queryString.split(" ")));
 
-        if (!insertTokens.get(1).equals("into") || !queryString.contains(") values")) {
-            System.out.println("! Syntax error");
-            System.out.println("Expected Syntax: INSERT INTO table_name ( columns ) VALUES ( values );");
+    // Check if the format is correct
+    if (insertTokens.size() < 6 || !insertTokens.get(1).equalsIgnoreCase("INTO") || !insertTokens.get(2).equalsIgnoreCase("TABLE") || !insertTokens.get(4).equalsIgnoreCase("VALUES")) {
+        System.out.println("! Syntax error");
+        System.out.println("Please ensure there is a space after \" VALUES\"");
+        System.out.println("Expected Syntax: INSERT INTO TABLE table_name VALUES (value1, value2, value3, ...);");
+        return;
+    }
 
+    try {
+        // Extract table name
+        String tableName = insertTokens.get(3).trim();
+        if (tableName.length() == 0) {
+            System.out.println("! Table name cannot be empty");
             return;
         }
 
-        try {
-            String tableName = insertTokens.get(2);
-            if (tableName.trim().length() == 0) {
-                System.out.println("! Tablename cannot be empty");
-                return;
-            }
+        // Fetch metadata to ensure the table exists
+        MetaData dstMetaData = new MetaData(tableName);
 
-            // parsing logic
-            if (tableName.indexOf("(") > -1) {
-                tableName = tableName.substring(0, tableName.indexOf("("));
-            }
-            MetaData dstMetaData = new MetaData(tableName);
+        if (!dstMetaData.tableExists) {
+            System.out.println("! Table does not exist.");
+            return;
+        }
 
-            if (!dstMetaData.tableExists) {
-                System.out.println("! Table does not exist.");
-                return;
-            }
+        // Extract values from the query string
+        String valuesString = queryString.substring(queryString.indexOf("VALUES") + 6).trim();
+        valuesString = valuesString.substring(valuesString.indexOf("(") + 1, valuesString.indexOf(")")).trim();
 
-            ArrayList<String> columnTokens = new ArrayList<String>(Arrays.asList(
-                    queryString.substring(queryString.indexOf("(") + 1, queryString.indexOf(") values")).split(",")));
+        // Split the values string by commas, which will separate individual values
+        ArrayList<String> valueTokens = new ArrayList<String>(Arrays.asList(valuesString.split(",")));
 
-            // Column List validation
-            for (String colToken : columnTokens) {
-                if (!dstMetaData.columnNames.contains(colToken.trim())) {
-                    System.out.println("! Invalid column : " + colToken.trim());
+         // Ensure that the number of values matches the number of columns in the table
+        if (valueTokens.size() != dstMetaData.columnNameAttrs.size()) {
+            System.out.println("! Number of values does not match the number of columns in the table.");
+            return;
+        }
+
+        // Clean up extra spaces or quotes around values
+        for (int i = 0; i < valueTokens.size(); i++) {
+            valueTokens.set(i, valueTokens.get(i).trim());
+
+            // If the column is TEXT, we expect the value to be surrounded by quotes.
+            ColumnInformation colInfo = dstMetaData.columnNameAttrs.get(i);
+            if (colInfo.dataType == DataTypes.TEXT) {
+                // Ensure that the value is surrounded by quotes for TEXT columns
+                if (!valueTokens.get(i).startsWith("\"") || !valueTokens.get(i).endsWith("\"")) {
+                    System.out.println("! Error: Value for column " + colInfo.columnName + " must be enclosed in quotes (TEXT type).");
                     return;
                 }
+                // Remove quotes for TEXT columns (value is valid, just clean it for insertion)
+                valueTokens.set(i, valueTokens.get(i).substring(1, valueTokens.get(i).length() - 1));
             }
-
-            String valuesString = queryString.substring(queryString.indexOf("values") + 6, queryString.length() - 1);
-
-            ArrayList<String> valueTokens = new ArrayList<String>(Arrays
-                    .asList(valuesString.substring(valuesString.indexOf("(") + 1, valuesString.length()).split(",")));
-
-            // fill attributes to insert
-            List<TableAttribute> attributeToInsert = new ArrayList<>();
-
-            for (ColumnInformation colInfo : dstMetaData.columnNameAttrs) {
-                int i = 0;
-                boolean columnProvided = false;
-                for (i = 0; i < columnTokens.size(); i++) {
-                    if (columnTokens.get(i).trim().equals(colInfo.columnName)) {
-                        columnProvided = true;
-                        try {
-                            String value = valueTokens.get(i).replace("'", "").replace("\"", "").trim();
-                            if (valueTokens.get(i).trim().equals("null")) {
-                                if (!colInfo.isNullable) {
-                                    System.out.println("! Cannot Insert NULL into " + colInfo.columnName);
-                                    return;
-                                }
-                                colInfo.dataType = DataTypes.NULL;
-                                value = value.toUpperCase();
-                            }
-                            TableAttribute attr = new TableAttribute(colInfo.dataType, value);
-                            attributeToInsert.add(attr);
-                            break;
-                        } catch (Exception e) {
-                            System.out.println("! Invalid data format for " + columnTokens.get(i) + " values: "
-                                    + valueTokens.get(i));
-                            return;
-                        }
-                    }
-                }
-                if (columnTokens.size() > i) {
-                    columnTokens.remove(i);
-                    valueTokens.remove(i);
-                }
-
-                if (!columnProvided) {
-                    if (colInfo.isNullable)
-                        attributeToInsert.add(new TableAttribute(DataTypes.NULL, "NULL"));
-                    else {
-                        System.out.println("! Cannot Insert NULL into " + colInfo.columnName);
-                        return;
-                    }
-                }
-            }
-
-            // insert attributes to the page
-            RandomAccessFile dstTable = new RandomAccessFile(TableUtils.getTablePath(tableName), "rw");
-            int dstPageNo = BPlusOneTree.getPgNoForInsert(dstTable, dstMetaData.rootPageNo);
-            Page dstPage = new Page(dstTable, dstPageNo);
-
-            int rowNo = dstPage.addTbRows(tableName, attributeToInsert);
-
-            // update Index
-            if (rowNo != -1) {
-
-                for (int i = 0; i < dstMetaData.columnNameAttrs.size(); i++) {
-                    ColumnInformation col = dstMetaData.columnNameAttrs.get(i);
-
-                    if (col.hasIndex) {
-                        RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(tableName, col.columnName),
-                                "rw");
-                        BTree bTree = new BTree(indexFile);
-                        bTree.insertRow(attributeToInsert.get(i), rowNo);
-                    }
-
-                }
-            }
-
-            dstTable.close();
-            if (rowNo != -1)
-                System.out.println("* Record Inserted");
-            System.out.println();
-
-        } catch (Exception ex) {
-            System.out.println("! Error while inserting record");
-            System.out.println(ex);
-
+            // For other types, no modification is needed (INT, FLOAT, etc.)
         }
+
+       
+
+        // Prepare attributes to insert
+        List<TableAttribute> attributeToInsert = new ArrayList<>();
+
+        for (int i = 0; i < dstMetaData.columnNameAttrs.size(); i++) {
+            ColumnInformation colInfo = dstMetaData.columnNameAttrs.get(i);
+            String value = valueTokens.get(i);
+
+            // Handle NULL values
+            if (value.equals("null")) {
+                if (!colInfo.isNullable) {
+                    System.out.println("! Cannot insert NULL into non-nullable column: " + colInfo.columnName);
+                    return;
+                }
+                value = "NULL"; // represent NULL explicitly
+            }
+
+            try {
+                // Validate data type using the isValidDataType function
+                if (!isValidDataType(value, colInfo)) {
+                    System.out.println("! Invalid data type for column " + colInfo.columnName + ". Expected " + colInfo.dataType + " but got: " + value);
+                    return;
+                }
+
+                // Create a TableAttribute object with the column's data type and value
+                TableAttribute attr = new TableAttribute(colInfo.dataType, value);
+                attributeToInsert.add(attr);
+            } catch (Exception e) {
+                System.out.println("! Invalid data format for column: " + colInfo.columnName);
+                return;
+            }
+        }
+
+        // Perform the insertion into the table
+        RandomAccessFile dstTable = new RandomAccessFile(TableUtils.getTablePath(tableName), "rw");
+        int dstPageNo = BPlusOneTree.getPgNoForInsert(dstTable, dstMetaData.rootPageNo);
+        Page dstPage = new Page(dstTable, dstPageNo);
+
+        int rowNo = dstPage.addTbRows(tableName, attributeToInsert);
+
+        // Update indexes if necessary
+        if (rowNo != -1) {
+            for (int i = 0; i < dstMetaData.columnNameAttrs.size(); i++) {
+                ColumnInformation col = dstMetaData.columnNameAttrs.get(i);
+
+                if (col.hasIndex) {
+                    RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(tableName, col.columnName), "rw");
+                    BTree bTree = new BTree(indexFile);
+                    bTree.insertRow(attributeToInsert.get(i), rowNo);
+                }
+            }
+        }
+
+        dstTable.close();
+
+        // Confirm successful insertion
+        if (rowNo != -1)
+            System.out.println("* Record Inserted");
+
+    } catch (Exception ex) {
+        System.out.println("! Error while inserting record");
+        System.out.println(ex);
     }
+}
+
+
+public static boolean isValidDataType(String value, ColumnInformation colInfo) {
+    try {
+        switch (colInfo.dataType) {
+            case DataTypes.INT: // Change to DataTypes.INTEGER
+                Integer.parseInt(value); // Validates if value is an integer
+                return true; // Return true for valid integer
+            case DataTypes.TEXT: // Change to DataTypes.TEXT
+                return true; // Return true for valid text (no need for further validation)
+            case DataTypes.FLOAT: // Change to DataTypes.FLOAT
+                Float.parseFloat(value); // Validates if value is a float
+                return true; // Return true for valid float
+            default:
+                return false; // Unknown data type, return false
+        }
+    } catch (NumberFormatException e) {
+        return false; // If there's a parsing error, the value doesn't match the expected data type
+    }
+}
 
     private static void parseDeleteTable(String deleteTableString) {
         ArrayList<String> deleteTableTokens = new ArrayList<String>(Arrays.asList(deleteTableString.split(" ")));
