@@ -84,7 +84,7 @@ public class TableAttribute {
             } else if (dt == DataTypes.SMALLINT) {
                 this.fldValbyte = ByteConvertor.shortTobytes(Short.parseShort(fldVal));
             } else if (dt == DataTypes.INT) {
-                this.fldValbyte = ByteConvertor.intToBytes(Integer.parseInt(fldVal));
+                this.fldValbyte = ByteConvertor.intTobytes(Integer.parseInt(fldVal));
             } else if (dt == DataTypes.BIGINT) {
                 this.fldValbyte =  ByteConvertor.longTobytes(Long.parseLong(fldVal)); 
             } else if (dt == DataTypes.FLOAT) {
