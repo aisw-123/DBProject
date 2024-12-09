@@ -62,13 +62,13 @@ public class BPlusOneTree {
     public List<Integer> getAllLeaves(SpecialCondition condition) throws IOException {
 
         if (condition == null || condition.getOperation() == SpecialCondition.OperatorType.NOTEQUAL
-                || !(new File(TableUtils.getIndexFilePath(tableName, condition.columnName)).exists())) {
+                || !(new File(TableUtils.getIndexFilePath(condition.columnName)).exists())) {
             // Since there is no index, use brute force algorithm to trverse through all leaves
             return getAllLeaves();
         } else {
 
             RandomAccessFile indexFile = new RandomAccessFile(
-                    TableUtils.getIndexFilePath(tableName, condition.columnName), "r");
+                    TableUtils.getIndexFilePath(condition.columnName), "r");
             BTree bTree = new BTree(indexFile);
 
             // Binary search on the btree

@@ -118,7 +118,7 @@ public class DavisBaseBinaryFile {
                 }
                 
                 if(tablemetaData.colNameAttrs.get(i).hasIdx && condition!=null){
-                  RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(tablemetaData.colNameAttrs.get(i).tblName, tablemetaData.colNameAttrs.get(i).colName), "rw");
+                  RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(tablemetaData.colNameAttrs.get(i).colName), "rw");
                   BTree bTree = new BTree(indexFile);
                   bTree.deleteRow(oldValue,record.rId);
                   bTree.insertRow(newValueMap.get(i), rowId);

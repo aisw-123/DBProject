@@ -23,7 +23,7 @@ public class TableUtils {
 		return String.format("data/%s.tbl", tblName);
 	}
 
-	public static String getIndexFilePath(String tblName, String colName) {
-		return String.format("data/%s_%s.ndx",tblName, colName);
+	public static String getIndexFilePath(String colName) {
+		return String.format("data/%s.ndx", colName);
 	}
 }

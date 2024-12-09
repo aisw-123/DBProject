@@ -24,7 +24,7 @@ public class ColumnInformation
         this.ordPos = ordPosition;
         this.tblName = tblName;
 
-        this.hasIdx = (new File(TableUtils.getIndexFilePath(tblName, clmName)).exists());
+        this.hasIdx = (new File(TableUtils.getIndexFilePath(clmName)).exists());
 
     }
 
