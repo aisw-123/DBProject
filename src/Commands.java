@@ -21,7 +21,7 @@ public class Commands {
          * other tokens can be used to pass relevant parameters to each command-specific
          * method inside each case statement
          */
-        ArrayList<String> commandTokens = new ArrayList<String>(Arrays.asList(userString.split(" ")));
+        ArrayList<String> commandTokens = new ArrayList<>(Arrays.asList(userString.split(" ")));
 
         /*
          * This switch handles a very small list of hardcoded commands of known syntax.
@@ -31,14 +31,12 @@ public class Commands {
             case "show":
                 if (commandTokens.get(1).equals("tables"))
                     parseUserCommand("select * from davisbase_tables");
-                else if (commandTokens.get(1).equals("rowid")) {
-                    DavisBaseBinaryFile.showRowId = true;
-                    System.out.println("* Table Select will now include RowId.");
-                } else
+                else
                     System.out.println("! I didn't understand the command: \"" + userString + "\"");
                 break;
             case "select":
                 parseString(userString);
+                DavisBaseBinaryFile.showRowId = false;
                 break;
             case "drop":
                 if (commandTokens.get(1).equals("table"))
@@ -87,10 +85,14 @@ public class Commands {
     
         // Split the query into tokens
         ArrayList<String> queryTokens = new ArrayList<>(Arrays.asList(queryStr.split(" ")));
-        int i = 0;
+        int i;
     
         // Parse table name and columns
         for (i = 1; i < queryTokens.size(); i++) {
+            if (queryTokens.get(i).equalsIgnoreCase("rowid,")) {
+                ++i;
+                DavisBaseBinaryFile.showRowId = true;
+            }
             if (queryTokens.get(i).equalsIgnoreCase("from")) {
                 ++i;
                 table_name = queryTokens.get(i);
@@ -112,7 +114,7 @@ public class Commands {
             return;
         }
     
-        SpecialCondition condition = null;
+        SpecialCondition condition;
         try {
             // Extract condition using the updated method
             condition = getComplexConditionFromQuery(tableMetaData, queryStr);
@@ -347,7 +349,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
         }
     }
     public static void parseUpdateTable(String updateString) {
-        ArrayList<String> updateTokens = new ArrayList<String>(Arrays.asList(updateString.split(" ")));
+        ArrayList<String> updateTokens = new ArrayList<>(Arrays.asList(updateString.split(" ")));
 
         String table_name = updateTokens.get(1);
         List<String> columnsToUpdate = new ArrayList<>();
@@ -362,7 +364,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
 
         String updateColInfoString = updateString.split("set")[1].split("where")[0];
 
-        List<String> column_newValueSet = Arrays.asList(updateColInfoString.split(","));
+        String[] column_newValueSet = updateColInfoString.split(",");
 
         for (String item : column_newValueSet) {
             columnsToUpdate.add(item.split("=")[0].trim());
@@ -381,7 +383,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
             return;
         }
 
-        SpecialCondition condition = null;
+        SpecialCondition condition;
         try {
 
             condition = getConditionFromQuery(metadata, updateString);
@@ -414,7 +416,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
                             {
                                 //Delete the index file. TODO
 
-                                if(allRowids.size() == 0)
+                                if(allRowids.isEmpty())
                                 {
                                     BPlusOneTree bPlusOneTree = new BPlusOneTree(file, metadata.rootPgNo, metadata.tabName);
                                     for (int pageNo : bPlusOneTree.getAllLeaves()) {
@@ -448,7 +450,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
 
     public static void parseInsertTable(String queryString) {
     // INSERT INTO TABLE table_name VALUES (value1, value2, value3, ...);
-    ArrayList<String> insertTokens = new ArrayList<String>(Arrays.asList(queryString.split(" ")));
+    ArrayList<String> insertTokens = new ArrayList<>(Arrays.asList(queryString.split(" ")));
 
     // Check if the format is correct
     if (insertTokens.size() < 6 || !insertTokens.get(1).equalsIgnoreCase("INTO") || !insertTokens.get(2).equalsIgnoreCase("TABLE") || !insertTokens.get(4).equalsIgnoreCase("VALUES")) {
@@ -461,7 +463,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
     try {
         // Extract table name
         String tableName = insertTokens.get(3).trim();
-        if (tableName.length() == 0) {
+        if (tableName.isEmpty()) {
             System.out.println("! Table name cannot be empty");
             return;
         }
@@ -716,7 +718,7 @@ public static boolean isValidDataType(String value, ColumnInformation colInfo) {
 
 
             if (tableMetaData.tabExists
-                    && tableMetaData.columnExists(new ArrayList<String>(Arrays.asList(condition.columnName)))) {
+                    && tableMetaData.columnExists(new ArrayList<>(Arrays.asList(condition.columnName)))) {
                 condition.columnOrdinal = tableMetaData.colNames.indexOf(condition.columnName);
                 condition.dataType = tableMetaData.colNameAttrs.get(condition.columnOrdinal).dType;
             } else {
