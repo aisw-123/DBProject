@@ -13,8 +13,8 @@ public class DavisBase {
         File dataDirectory = new File("data"); // Renamed dataDir to dataDirectory
 
         // Check if system tables exist, and initialize if they don't
-        if (!new File(dataDirectory, DavisBaseBinaryFile.systemTablesFile + ".tbl").exists()
-                || !new File(dataDirectory, DavisBaseBinaryFile.systemColumnsFile + ".tbl").exists()) {
+        if (!new File(dataDirectory, DavisBaseBinaryFile.systemTablesFile + ".ndx").exists()
+                || !new File(dataDirectory, DavisBaseBinaryFile.systemColumnsFile + ".ndx").exists()) {
             DavisBaseBinaryFile.initializeSystemTables(); // Renamed initializeData() to initializeSystemTables()
         } else {
             DavisBaseBinaryFile.isSystemInitialized = true; // Renamed dataStoreInitialized to isSystemInitialized
