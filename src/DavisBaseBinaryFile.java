@@ -138,7 +138,7 @@ public class DavisBaseBinaryFile {
 
    /**
     * This static method creates the DavisBase data storage container and then
-    * initializes two .ndx files to implement the two system tables,
+    * initializes two .tbl files to implement the two system tables,
     * davisbase_tables and davisbase_columns
     */
    public static void initializeSystemTables() {
