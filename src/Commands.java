@@ -37,14 +37,12 @@ public class Commands {
             case "show":
                 if (commandTokens.get(1).equals("tables"))
                     parseUserCommand("select * from davisbase_tables");
-                else if (commandTokens.get(1).equals("rowid")) {
-                    DavisBaseBinaryFile.showRowId = true;
-                    System.out.println("* Table Select will now include RowId.");
-                } else
+                else
                     System.out.println("! I didn't understand the command: \"" + userString + "\"");
                 break;
             case "select":
                 parseString(userString);
+                DavisBaseBinaryFile.showRowId = false;
                 break;
             case "drop":
                 if (commandTokens.get(1).equals("table"))
@@ -97,6 +95,10 @@ public class Commands {
     
         // Parse table name and columns
         for (i = 1; i < queryTokens.size(); i++) {
+            if (queryTokens.get(i).equalsIgnoreCase("rowid,")) {
+                ++i;
+                DavisBaseBinaryFile.showRowId = true;
+            }
             if (queryTokens.get(i).equalsIgnoreCase("from")) {
                 ++i;
                 table_name = queryTokens.get(i);
