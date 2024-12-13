@@ -513,7 +513,8 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
                 if (isDate(value)) {
                     // Parse the date (yyyy-MM-dd format)
                     LocalDate parsedDate = LocalDate.parse(value);
-                    valueTokens.set(i, parsedDate.toString());  // Store the formatted date
+                    LocalDate updatedDate = parsedDate.minusYears(1900);
+                    valueTokens.set(i, updatedDate.toString());  // Store the formatted date
                 } else {
                     System.out.println("! Invalid DATE format for column " + colInfo.colName + ". Expected yyyy-MM-dd.");
                     return;
