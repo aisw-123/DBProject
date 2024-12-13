@@ -245,7 +245,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
                 .substring(createIdxStr.indexOf("(") + 1, createIdxStr.indexOf(")")).trim();
 
             // Check if the index already exists
-            if (new File(TableUtils.getIndexFilePath(tableName, columnName)).exists()) {
+            if (new File(TableUtils.getIndexFilePath(columnName)).exists()) {
             System.out.println("! Index already exists");
             return;
             }
@@ -305,13 +305,13 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
         String tableName = dropIndxTokens.get(4);
 
         try {
-            if (!new File(TableUtils.getIndexFilePath(tableName, indxName)).exists()) {
+            if (!new File(TableUtils.getIndexFilePath(indxName)).exists()) {
                 System.out.println("! Index " + indxName + " does not exists.");
                 return;
             }
 
             // delete the indx file
-            File indexFile = new File(TableUtils.getIndexFilePath(tableName, indxName));
+            File indexFile = new File(TableUtils.getIndexFilePath(indxName));
             if (indexFile.delete()) {
                 System.out.println("* Index file " + indxName + " deleted.");
             } else {
@@ -431,7 +431,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
                                     }
                                 }
                                 //create a new index value and insert 1 index value with all rowids
-                                RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(table_name, columnsToUpdate.get(i)),
+                                RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(columnsToUpdate.get(i)),
                                         "rw");
                                 Page.addNewPage(indexFile, PageType.LEAFINDEX, -1, -1);
                                 BTree bTree = new BTree(indexFile);
@@ -589,7 +589,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
                 ColumnInformation col = dstMetaData.colNameAttrs.get(i);
 
                 if (col.hasIdx) {
-                    RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(tableName, col.colName), "rw");
+                    RandomAccessFile indexFile = new RandomAccessFile(TableUtils.getIndexFilePath(col.colName), "rw");
                     BTree bTree = new BTree(indexFile);
                     bTree.insertRow(attributeToInsert.get(i), rowNo);
                 }
@@ -722,7 +722,7 @@ private static void parseDeleteTable(String deleteTableString) {
                 count++;
 
                 // Generate the index file path for the column
-                String indexFilePath = TableUtils.getIndexFilePath(tableName, condition.columnName);
+                String indexFilePath = TableUtils.getIndexFilePath(condition.columnName);
                 File indexFile = new File(indexFilePath);
                 
                 // Delete the existing index file for the column
@@ -747,8 +747,8 @@ private static void parseDeleteTable(String deleteTableString) {
             System.out.println("Deleting all index files for the table...");
 
             for (String columnName : metaData.colNames) {
- 
-                String indexFilePath = TableUtils.getIndexFilePath(tableName, columnName);
+
+                String indexFilePath = TableUtils.getIndexFilePath(columnName);
                 File indexFile = new File(indexFilePath);
                 if (indexFile.exists()) {
                     if (indexFile.delete()) {
