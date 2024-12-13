@@ -893,7 +893,7 @@ private static void parseDeleteTable(String deleteTableString) {
 
         parseDeleteTable("delete from table "+ DavisBaseBinaryFile.systemTablesFile + " where table_name = '"+tableName+"' ");
         parseDeleteTable("delete from table "+ DavisBaseBinaryFile.systemColumnsFile + " where table_name = '"+tableName+"' ");
-        File tableFile = new File("data/"+tableName+".ndx");
+        File tableFile = new File("data/"+tableName+".tbl");
         if(tableFile.delete()){
             System.out.println("table deleted");
         }else System.out.println("table doesn't exist");
