@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -27,7 +26,7 @@ public class Commands {
          * other tokens can be used to pass relevant parameters to each command-specific
          * method inside each case statement
          */
-        ArrayList<String> commandTokens = new ArrayList<String>(Arrays.asList(userString.split(" ")));
+        ArrayList<String> commandTokens = new ArrayList<>(Arrays.asList(userString.split(" ")));
 
         /*
          * This switch handles a very small list of hardcoded commands of known syntax.
@@ -91,7 +90,7 @@ public class Commands {
     
         // Split the query into tokens
         ArrayList<String> queryTokens = new ArrayList<>(Arrays.asList(queryStr.split(" ")));
-        int i = 0;
+        int i;
     
         // Parse table name and columns
         for (i = 1; i < queryTokens.size(); i++) {
@@ -120,7 +119,7 @@ public class Commands {
             return;
         }
     
-        SpecialCondition condition = null;
+        SpecialCondition condition;
         try {
             // Extract condition using the updated method
             condition = getComplexConditionFromQuery(tableMetaData, queryStr);
@@ -355,7 +354,7 @@ String whereClause = query.substring(query.indexOf("where") + 6).trim();
         }
     }
     public static void parseUpdateTable(String updateString) {
-        ArrayList<String> updateTokens = new ArrayList<String>(Arrays.asList(updateString.split(" ")));
+        ArrayList<String> updateTokens = new ArrayList<>(Arrays.asList(updateString.split(" ")));
 
         String table_name = updateTokens.get(1);
         List<String> columnsToUpdate = new ArrayList<>();
@@ -663,10 +662,7 @@ public static boolean isValidDataType(String value, ColumnInformation colInfo) {
                 return isDateTime(value);
             case YEAR:
                 // Check if value is a valid year (4 digits)
-                if (value.length() == 4 && Integer.parseInt(value) >= 1000 && Integer.parseInt(value) <= 9999) {
-                    return true;
-                }
-                return false;
+                return value.length() == 4 && Integer.parseInt(value) >= 1000 && Integer.parseInt(value) <= 9999;
             default:
                 return false; // Return false if the data type doesn't match
         }
@@ -677,7 +673,7 @@ public static boolean isValidDataType(String value, ColumnInformation colInfo) {
 
 
 private static void parseDeleteTable(String deleteTableString) {
-    ArrayList<String> deleteTableTokens = new ArrayList<String>(Arrays.asList(deleteTableString.split(" ")));
+    ArrayList<String> deleteTableTokens = new ArrayList<>(Arrays.asList(deleteTableString.split(" ")));
 
     String tableName = "";
 
@@ -800,8 +796,8 @@ private static void parseDeleteTable(String deleteTableString) {
     private static SpecialCondition getConditionFromQuery(MetaData tableMetaData, String query) throws Exception {
         if (query.contains("where")) {
             SpecialCondition condition = new SpecialCondition(DataTypes.TEXT);
-            String whereClause = query.substring(query.indexOf("where") + 6, query.length());
-            ArrayList<String> whereClauseTokens = new ArrayList<String>(Arrays.asList(whereClause.split(" ")));
+            String whereClause = query.substring(query.indexOf("where") + 6);
+            ArrayList<String> whereClauseTokens = new ArrayList<>(Arrays.asList(whereClause.split(" ")));
 
             // WHERE NOT column operator value
             if (whereClauseTokens.get(0).equalsIgnoreCase("not")) {
@@ -811,7 +807,7 @@ private static void parseDeleteTable(String deleteTableString) {
 
             for (int i = 0; i < SpecialCondition.supportedOperators.length; i++) {
                 if (whereClause.contains(SpecialCondition.supportedOperators[i])) {
-                    whereClauseTokens = new ArrayList<String>(
+                    whereClauseTokens = new ArrayList<>(
                             Arrays.asList(whereClause.split(SpecialCondition.supportedOperators[i])));
                     {	condition.setOp(SpecialCondition.supportedOperators[i]);
                         condition.setConditionValue(whereClauseTokens.get(1).trim());
@@ -824,7 +820,7 @@ private static void parseDeleteTable(String deleteTableString) {
 
 
             if (tableMetaData.tabExists
-                    && tableMetaData.columnExists(new ArrayList<String>(Arrays.asList(condition.columnName)))) {
+                    && tableMetaData.columnExists(new ArrayList<>(Collections.singletonList(condition.columnName)))) {
                 condition.columnOrdinal = tableMetaData.colNames.indexOf(condition.columnName);
                 condition.dataType = tableMetaData.colNameAttrs.get(condition.columnOrdinal).dType;
             } else {
@@ -890,7 +886,7 @@ private static void parseDeleteTable(String deleteTableString) {
             return;
         }
 
-        ArrayList<String> dropTableTokens = new ArrayList<String>(Arrays.asList(dropTableString.split(" ")));
+        ArrayList<String> dropTableTokens = new ArrayList<>(Arrays.asList(dropTableString.split(" ")));
         String tableName = dropTableTokens.get(2);
 
 
@@ -909,6 +905,7 @@ private static void parseDeleteTable(String deleteTableString) {
             }
         });
         boolean iFlag = false;
+        assert matchingFiles != null;
         for (File file : matchingFiles) {
             if(file.delete()){
                 iFlag = true;
@@ -929,34 +926,32 @@ private static void parseDeleteTable(String deleteTableString) {
 
     public static void parseCreateTable(String createTableString) {
 
-        ArrayList<String> createTableTokens = new ArrayList<String>(Arrays.asList(createTableString.split(" ")));
+        ArrayList<String> createTableTokens = new ArrayList<>(Arrays.asList(createTableString.split(" ")));
         // table and () check
         if (!createTableTokens.get(1).equals("table")) {
             System.out.println("! Syntax Error");
             return;
         }
         String tableName = createTableTokens.get(2);
-        if (tableName.trim().length() == 0) {
+        if (tableName.trim().isEmpty()) {
             System.out.println("! Tablename cannot be empty");
             return;
         }
         try {
 
-            if (tableName.indexOf("(") > -1) {
+            if (tableName.contains("(")) {
                 tableName = tableName.substring(0, tableName.indexOf("("));
             }
 
             List<ColumnInformation> lstcolumnInformation = new ArrayList<>();
-            ArrayList<String> columnTokens = new ArrayList<String>(Arrays.asList(createTableString
+            ArrayList<String> columnTokens = new ArrayList<>(Arrays.asList(createTableString
                     .substring(createTableString.indexOf("(") + 1, createTableString.length() - 1).split(",")));
 
             short ordinalPosition = 1;
 
-            String primaryKeyColumn = "";
-
             for (String columnToken : columnTokens) {
 
-                ArrayList<String> colInfoToken = new ArrayList<String>(Arrays.asList(columnToken.trim().split(" ")));
+                ArrayList<String> colInfoToken = new ArrayList<>(Arrays.asList(columnToken.trim().split(" ")));
                 ColumnInformation colInfo = new ColumnInformation();
                 colInfo.tblName = tableName;
                 colInfo.colName = colInfoToken.get(0);
@@ -978,7 +973,6 @@ private static void parseDeleteTable(String deleteTableString) {
                         colInfo.isPrimKey = true;
                         colInfo.unique = true;
                         colInfo.isNullable = false;
-                        primaryKeyColumn = colInfo.colName;
                         i++;
                     }
 
@@ -998,9 +992,9 @@ private static void parseDeleteTable(String deleteTableString) {
             Page page = new Page(davisbaseTablesCatalog, pageNo);
 
             int rowNo = page.addTbRows(DavisBaseBinaryFile.systemTablesFile,
-                    Arrays.asList(new TableAttribute[] { new TableAttribute(DataTypes.TEXT, tableName), // DavisBaseBinaryFile.systemTablesFile->test
+                    Arrays.asList(new TableAttribute(DataTypes.TEXT, tableName), // DavisBaseBinaryFile.systemTablesFile->test
                             new TableAttribute(DataTypes.INT, "0"), new TableAttribute(DataTypes.SMALLINT, "0"),
-                            new TableAttribute(DataTypes.SMALLINT, "0") }));
+                            new TableAttribute(DataTypes.SMALLINT, "0")));
             davisbaseTablesCatalog.close();
 
             if (rowNo == -1) {

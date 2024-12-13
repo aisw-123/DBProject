@@ -24,7 +24,7 @@ public class BPlusOneTree {
     public List<Integer> getAllLeaves() throws IOException {
 
         List<Integer> leafPages = new ArrayList<>();
-        binaryFile.seek(rootPageNum * DavisBaseBinaryFile.pageSize);
+        binaryFile.seek((long) rootPageNum * DavisBaseBinaryFile.pageSize);
         // if root is a leaf page, read directly and return. No traversal is required
         PageType rootPgType = PageType.get(binaryFile.readByte());
         if (rootPgType == PageType.LEAF) {
@@ -44,7 +44,7 @@ public class BPlusOneTree {
         for (InteriorRecord leftPage : intPage.leftChildren) {
             if (Page.getPageType(binaryFile, leftPage.leftChildPgNo) == PageType.LEAF) {
                 if (!leafPage.contains(leftPage.leftChildPgNo))
-                leafPage.add(leftPage.leftChildPgNo);
+                    leafPage.add(leftPage.leftChildPgNo);
             } else {
                 addLeaves(leftPage.leftChildPgNo, leafPage);
             }
@@ -52,7 +52,7 @@ public class BPlusOneTree {
 
         if (Page.getPageType(binaryFile, intPage.rightPage) == PageType.LEAF) {
             if (!leafPage.contains(intPage.rightPage))
-            leafPage.add(intPage.rightPage);
+                leafPage.add(intPage.rightPage);
         } else {
             addLeaves(intPage.rightPage, leafPage);
         }
@@ -129,7 +129,7 @@ public class BPlusOneTree {
 
         if(end - start <= 2)
         {
-            int i =start;
+            int i;
             for(i=start;i <end;i++){
                 if(vals.get(i).rId < searchValue)
                     continue;

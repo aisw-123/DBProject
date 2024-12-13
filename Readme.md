@@ -79,7 +79,7 @@ SELECT * FROM table_name WHERE NOT column_name=value;
 SELECT * FROM table_name WHERE column_name1 > value1 OR NOT column_name2 >= value2;
 ```
 Examples:
-![](selecting.png)
+![](selecting.png) 
 
 Displaying the rowid requires the first selection option to be rowid followed by a comma using the following syntax:
 ```java
