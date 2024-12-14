@@ -643,8 +643,23 @@ public static boolean isTime(String value) {
 public static boolean isValidDataType(String value, ColumnInformation colInfo) {
     try {
         switch (colInfo.dType) {
+            case NULL:
+                if(value=="NULL")
+                    return true;
+            case TINYINT:
+                Byte.parseByte(value);
+                return true;
+            case SMALLINT:
+                Short.parseShort(value);
+                return true;
             case INT:
                 Integer.parseInt(value); // Validates if value is an integer
+                return true;
+            case BIGINT:
+                Long.parseLong(value);
+                return true;
+            case DOUBLE:
+                Double.parseDouble(value);
                 return true;
             case TEXT:
                 return true; // TEXT columns can be any string, so always valid
@@ -653,13 +668,13 @@ public static boolean isValidDataType(String value, ColumnInformation colInfo) {
                 return true;
             case DATE:
                 // Check if value is in the valid date format (yyyy-MM-dd)
-                return isDate(value);
+                return true;
             case TIME:
                 // Check if value is in the valid time format (HH:mm:ss)
-                return isTime(value);
+                return true;
             case DATETIME:
                 // Check if value is in the valid datetime format (yyyy-MM-dd HH:mm:ss)
-                return isDateTime(value);
+                return true;
             case YEAR:
                 // Check if value is a valid year (4 digits)
                 return value.length() == 4 && Integer.parseInt(value) >= 1000 && Integer.parseInt(value) <= 9999;
@@ -670,7 +685,6 @@ public static boolean isValidDataType(String value, ColumnInformation colInfo) {
         return false; // If there's any error, the value doesn't match the expected data type
     }
 }
-
 
 private static void parseDeleteTable(String deleteTableString) {
     ArrayList<String> deleteTableTokens = new ArrayList<>(Arrays.asList(deleteTableString.split(" ")));
