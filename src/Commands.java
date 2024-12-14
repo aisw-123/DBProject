@@ -746,11 +746,6 @@ private static void parseDeleteTable(String deleteTableString) {
                         System.out.println("Failed to delete index file for column: " + condition.columnName);
                     }
                 }
-
-                // Rebuild the index for the column (using the stored index file name)
-                String indexFileName = indexFile.getName(); // Get the index file name
-                String indexCreateCommand = "CREATE INDEX " + indexFileName + " ON " + tableName + " (" + condition.columnName + ")";
-                parseCreateIdx(indexCreateCommand);  // Recreate the index for the column
             }
         }
 
@@ -771,9 +766,7 @@ private static void parseDeleteTable(String deleteTableString) {
                     }
                 }
 
-                // Rebuild the index for the column
-                String indexCreateCommand = "CREATE INDEX idx_" + tableName + "_" + columnName + "_ON_" + tableName + " (" + columnName + ")";
-                parseCreateIdx(indexCreateCommand);  // Recreate the index for the column
+                
             }
         }
 
