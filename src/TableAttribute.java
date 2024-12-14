@@ -2,6 +2,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class TableAttribute {
     public byte[] fldValbyte; //Stores byte form of the data
@@ -93,11 +96,15 @@ public class TableAttribute {
                 this.fldValbyte = ByteConvertor.doubleTobytes(Double.parseDouble(fldVal));
             } else if (dt == DataTypes.YEAR) {
                 this.fldValbyte = new byte[] { (byte) (Integer.parseInt(fldVal) - 2000) }; 
-            } else if (dt == DataTypes.TIME) {
-                this.fldValbyte = ByteConvertor.intTobytes(Integer.parseInt(fldVal));
+            } else if (dt == DataTypes.TIME) {    
+                LocalTime time = LocalTime.parse(fldVal);    
+                int totalSeconds = time.toSecondOfDay();    
+                int totalMilliseconds = totalSeconds * 1000;    
+                this.fldValbyte = ByteConvertor.intTobytes(totalMilliseconds);
             } else if (dt == DataTypes.DATETIME) {
+                String newfldval = fldVal.replace("T", "_");
                 SimpleDateFormat sdftime = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss"); 
-                Date datetime = sdftime.parse(fldVal);  
+                Date datetime = sdftime.parse(newfldval);  
                 this.fldValbyte = ByteConvertor.longTobytes(datetime.getTime()); 
             } else if (dt == DataTypes.DATE) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
