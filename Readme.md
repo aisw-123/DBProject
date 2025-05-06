@@ -2,15 +2,15 @@
 
 ## Team Members
 
+- Aiswarya Madhu (axm230384)
 - Sowmya Sivaramakrishnan (sxs230043)
 - Nivedha Shankar (nxs230138)
 - Korey Pickering (kap200004)
 - Ishva Patel (irp190001)
-- Aiswarya Madhu (axm230384)
+
 
 ### Navigating the Prompt
-- Upon loading the MagnesiumSQL DBMS you will be greeted with the opening prompt. You may begin by using the `help;` command:
-  ![70%](help.png)
+- Upon loading the MagnesiumSQL DBMS you will be greeted with the opening prompt. You may begin by using the `help;'
 ### Commands
 All commands are listed under the help display. All commands must be terminated by a semicolon: `;`.
 #### Show Tables
